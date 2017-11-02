@@ -941,6 +941,8 @@ struct mdss_panel_info {
 
 	/* esc clk recommended for the panel */
 	u32 esc_clk_rate_hz;
+
+	bool bklt_dcs_2bytes_enabled;
 };
 
 struct mdss_panel_timing {
