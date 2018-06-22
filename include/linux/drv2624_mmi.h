@@ -315,7 +315,7 @@ struct drv2624_diag_result {
 	unsigned char mnDiagK;
 };
 
-#define	DRV2624_MAGIC_NUMBER	0x32363234	/* '2624' */
+#define	DRV2624_MAGIC_NUMBER	0x32363234& 0x1f	/* '2624' */
 
 #define	DRV2624_SET_SEQ_LOOP	_IOWR(DRV2624_MAGIC_NUMBER, 1, \
 					struct drv2624_seq_loop *)
