@@ -286,6 +286,15 @@ static int mdss_dsi_request_gpios(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
 			goto avdd_en_gpio_err;
 		}
 	}
+	if (gpio_is_valid(ctrl_pdata->tp_rst_gpio)) {
+		rc = gpio_request(ctrl_pdata->tp_rst_gpio,
+						"tp__rst_n");
+		if (rc) {
+			pr_err("request tp reset gpio failed, rc=%d\n",
+				       rc);
+			goto tp_rst_gpio_err;
+		}
+	}
 	if (gpio_is_valid(ctrl_pdata->lcd_mode_sel_gpio)) {
 		rc = gpio_request(ctrl_pdata->lcd_mode_sel_gpio, "mode_sel");
 		if (rc) {
@@ -300,6 +309,12 @@ static int mdss_dsi_request_gpios(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
 lcd_mode_sel_gpio_err:
 	if (gpio_is_valid(ctrl_pdata->avdd_en_gpio))
 		gpio_free(ctrl_pdata->avdd_en_gpio);
+	if (gpio_is_valid(ctrl_pdata->tp_rst_gpio))
+		gpio_free(ctrl_pdata->tp_rst_gpio);
+tp_rst_gpio_err:
+	if (gpio_is_valid(ctrl_pdata->avdd_en_gpio))
+		gpio_free(ctrl_pdata->avdd_en_gpio);
+	gpio_free(ctrl_pdata->rst_gpio);
 avdd_en_gpio_err:
 	gpio_free(ctrl_pdata->rst_gpio);
 rst_gpio_err:
@@ -438,6 +453,15 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 			}
 
 			if (pdata->panel_info.rst_seq_len) {
+				if(gpio_is_valid(ctrl_pdata->tp_rst_gpio)) {
+					rc = gpio_direction_output(ctrl_pdata->tp_rst_gpio,
+						pdata->panel_info.rst_seq[0]);
+					if (rc) {
+						pr_err("%s: unable to set dir for tp rst gpio\n",
+						__func__);
+						goto exit;
+					}
+				}
 				rc = gpio_direction_output(ctrl_pdata->rst_gpio,
 					pdata->panel_info.rst_seq[0]);
 				if (rc) {
@@ -448,6 +472,9 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 			}
 
 			for (i = 0; i < pdata->panel_info.rst_seq_len; ++i) {
+				if(gpio_is_valid(ctrl_pdata->tp_rst_gpio))
+					gpio_set_value((ctrl_pdata->tp_rst_gpio),
+						pdata->panel_info.rst_seq[i]);
 				gpio_set_value((ctrl_pdata->rst_gpio),
 					pdata->panel_info.rst_seq[i]);
 				if (pdata->panel_info.rst_seq[++i])
@@ -510,10 +537,16 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 			gpio_free(ctrl_pdata->disp_en_gpio);
 		}
 		gpio_set_value((ctrl_pdata->rst_gpio), 0);
+
 		gpio_free(ctrl_pdata->rst_gpio);
 		if (gpio_is_valid(ctrl_pdata->lcd_mode_sel_gpio)) {
 			gpio_set_value(ctrl_pdata->lcd_mode_sel_gpio, 0);
 			gpio_free(ctrl_pdata->lcd_mode_sel_gpio);
+                }
+		gpio_free(ctrl_pdata->rst_gpio);
+		if(gpio_is_valid(ctrl_pdata->tp_rst_gpio)){
+			gpio_set_value((ctrl_pdata->tp_rst_gpio), 0);
+			gpio_free(ctrl_pdata->tp_rst_gpio);
 		}
 	}
 
