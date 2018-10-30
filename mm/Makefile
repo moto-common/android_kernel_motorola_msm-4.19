@@ -45,6 +45,7 @@ obj-y			:= filemap.o mempool.o oom_kill.o fadvise.o \
 			   debug.o $(mmu-y) showmem.o vmpressure.o
 
 obj-y += init-mm.o
+obj-y += memblock.o
 
 ifdef CONFIG_NO_BOOTMEM
 	obj-y		+= nobootmem.o
@@ -55,7 +56,6 @@ endif
 ifdef CONFIG_MMU
 	obj-$(CONFIG_ADVISE_SYSCALLS)	+= madvise.o
 endif
-obj-$(CONFIG_HAVE_MEMBLOCK) += memblock.o
 
 obj-$(CONFIG_SWAP)	+= page_io.o swap_state.o swapfile.o swap_slots.o swap_ratio.o
 obj-$(CONFIG_FRONTSWAP)	+= frontswap.o
