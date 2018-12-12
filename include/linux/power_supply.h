@@ -385,6 +385,7 @@ enum power_supply_property {
 	POWER_SUPPLY_PROP_PTP_MAX_INPUT_VOLTAGE,
 	POWER_SUPPLY_PROP_PTP_INPUT_VOLTAGE,
 	POWER_SUPPLY_PROP_AGE,
+	POWER_SUPPLY_PROP_MOISTURE_DETECTION_ENABLE,
 	/* Local extensions of type int64_t */
 	POWER_SUPPLY_PROP_CHARGE_COUNTER_EXT,
 	/* Properties of type `const char *' */

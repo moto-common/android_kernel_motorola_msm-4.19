@@ -626,6 +626,7 @@ static struct device_attribute power_supply_attrs[] = {
 	POWER_SUPPLY_ATTR(max_input_voltage),
 	POWER_SUPPLY_ATTR(input_voltage),
 	POWER_SUPPLY_ATTR(age),
+	POWER_SUPPLY_ATTR(moisture_detection_enabled),
 	/* Local extensions of type int64_t */
 	POWER_SUPPLY_ATTR(charge_counter_ext),
 	/* Properties of type `const char *' */
