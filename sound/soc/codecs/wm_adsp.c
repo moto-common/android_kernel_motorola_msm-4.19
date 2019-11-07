@@ -931,9 +931,10 @@ static int wm_adsp_fw_get(struct snd_kcontrol *kcontrol,
 {
 	struct snd_soc_component *component = snd_soc_kcontrol_component(kcontrol);
 	struct soc_enum *e = (struct soc_enum *)kcontrol->private_value;
-	struct wm_adsp *dsp = snd_soc_component_get_drvdata(component);
+	struct wm_adsp *dsps = snd_soc_component_get_drvdata(component);
+	struct wm_adsp *dsp = &dsps[e->shift_l];
 
-	ucontrol->value.enumerated.item[0] = dsp[e->shift_l].fw;
+	ucontrol->value.enumerated.item[0] = dsp->fw;
 
 	return 0;
 }
@@ -943,27 +944,28 @@ static int wm_adsp_fw_put(struct snd_kcontrol *kcontrol,
 {
 	struct snd_soc_component *component = snd_soc_kcontrol_component(kcontrol);
 	struct soc_enum *e = (struct soc_enum *)kcontrol->private_value;
-	struct wm_adsp *dsp = snd_soc_component_get_drvdata(component);
+	struct wm_adsp *dsps = snd_soc_component_get_drvdata(component);
+	struct wm_adsp *dsp = &dsps[e->shift_l];
 	int ret = 0;
 
-	if (ucontrol->value.enumerated.item[0] == dsp[e->shift_l].fw)
+	if (ucontrol->value.enumerated.item[0] == dsp->fw) {
 		return 0;
+	}
 
 	if (ucontrol->value.enumerated.item[0] >= WM_ADSP_NUM_FW) {
 		adsp_dbg(dsp, "Firmware error 1\n");
 		return -EINVAL;
 	}
 
-	mutex_lock(&dsp[e->shift_l].pwr_lock);
+	mutex_lock(&dsp->pwr_lock);
 
-	if (dsp[e->shift_l].booted || dsp[e->shift_l].compr[0]) {
+	if (dsp->booted || dsp->compr[0]) {
 		ret = -EBUSY;
 		adsp_err(dsp, "Failed to set dsp firmware: %d\n", ret);
-	}
-	else
-		dsp[e->shift_l].fw = ucontrol->value.enumerated.item[0];
+	} else
+		dsp->fw = ucontrol->value.enumerated.item[0];
 
-	mutex_unlock(&dsp[e->shift_l].pwr_lock);
+	mutex_unlock(&dsp->pwr_lock);
 
 	return ret;
 }
@@ -4039,6 +4041,7 @@ static int wm_adsp_of_parse_firmware(struct wm_adsp *dsp,
 
 	dsp->fw_enum.items = dsp->num_firmwares;
 	dsp->fw_enum.texts = ctl_names;
+	dsp->fw_enum.shift_l = dsp->fw_enum.shift_r = dsp->num - 1;
 
 	dsp->fw_ctrl = wm_adsp_fw_controls[dsp->num - 1];
 	dsp->fw_ctrl.private_value = (unsigned long)(&dsp->fw_enum);
