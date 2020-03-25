@@ -11841,6 +11841,11 @@ M:	Colin Cross <ccross@android.com>
 M:	Tony Luck <tony.luck@intel.com>
 S:	Maintained
 T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kees/linux.git for-next/pstore
+F:	Documentation/admin-guide/ramoops.rst
+F:	Documentation/admin-guide/pstore-blk.rst
+F:	Documentation/devicetree/bindings/reserved-memory/ramoops.txt
+F:	drivers/acpi/apei/erst.c
+F:	drivers/firmware/efi/efi-pstore.c
 F:	fs/pstore/
 F:	include/linux/pstore*
 F:	drivers/firmware/efi/efi-pstore.c
