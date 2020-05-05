@@ -570,8 +570,6 @@ out:
  */
 int pstore_register(struct pstore_info *psi)
 {
-	struct module *owner = psi->owner;
-
 	if (backend && strcmp(backend, psi->name)) {
 		pr_warn("ignoring unexpected backend '%s'\n", psi->name);
 		return -EPERM;
@@ -606,10 +604,6 @@ int pstore_register(struct pstore_info *psi)
 	sema_init(&psinfo->buf_lock, 1);
 	spin_unlock(&pstore_lock);
 
-	if (owner && !try_module_get(owner)) {
-		psinfo = NULL;
-		return -EINVAL;
-	}
 
 	if (psi->flags & PSTORE_FLAGS_DMESG)
 		allocate_buf_for_compression();
@@ -640,8 +634,6 @@ int pstore_register(struct pstore_info *psi)
 	backend = psi->name;
 
 	pr_info("Registered %s as persistent store backend\n", psi->name);
-
-	module_put(owner);
 
 	return 0;
 }
