@@ -506,6 +506,7 @@ struct mmi_params {
 	int			is_otg_enable;
 	bool			force_chg_suspend;
 	bool                    support_2a_dcp;
+	bool                    support_mb_dcp;
 };
 
 struct smb_charger {
