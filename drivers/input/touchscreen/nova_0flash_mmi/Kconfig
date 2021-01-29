@@ -28,6 +28,15 @@ config INPUT_NOVA_PANEL_NOTIFICATIONS
 
 	  If unsure, say N.
 
+config INPUT_NOVA_EDGE_SUPPRESSION
+	bool "Moto Novatek NT36xxx EDGE touch suppression"
+	depends on TOUCHSCREEN_NT36xxx_HOSTDL_SPI_MMI
+	default n
+	help
+	  Say Y here if you want to have EDGE touch suppression support on Moto Novatek NT36xxx.
+
+	  If unsure, say N.
+
 config NOVA_ESD_ENABLE
         bool "Moto Novatek NT36xxx ESD Detection"
         depends on TOUCHSCREEN_NT36xxx_HOSTDL_SPI_MMI
