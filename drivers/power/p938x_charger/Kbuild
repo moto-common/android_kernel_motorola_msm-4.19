@@ -1,0 +1,5 @@
+# add -Wall to try to catch everything we can.
+EXTRA_CFLAGS += -Wall
+
+obj-$(CONFIG_P938X_CHARGER) += p938x_charger.o
+

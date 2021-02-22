@@ -1,0 +1,30 @@
+config INPUT_EGISTEC_FPS
+	tristate "Egistec fingerprint sensor MMI"
+	default n
+	help
+	 Say Y here if you wish to include support for MMI EGIS finger print sensor.
+	 If unsure, say N.
+
+config INPUT_EGISTEC_FPS_NAVI
+	bool "Egistec fingerprint sensor MMI navigation support"
+	default n
+	help
+	 Say Y here if you wish to include support for MMI EGIS finger print sensor
+         navigation functions.
+	 If unsure, say N.
+
+config INPUT_EGISTEC_FPS_NAVI_VERTICAL
+	bool "Egistec fingerprint sensor MMI navigation vertical support"
+	default n
+	help
+	 Say Y here if you wish to include support for MMI EGIS finger print sensor
+         vertical navigation functions.
+	 If unsure, say N.
+
+config INPUT_EGISTEC_FPS_NAVI_HORIZON
+	bool "Egistec fingerprint sensor MMI navigation horizon support"
+	default n
+	help
+	 Say Y here if you wish to include support for MMI EGIS finger print sensor
+         horizon navigation functions.
+	 If unsure, say N.

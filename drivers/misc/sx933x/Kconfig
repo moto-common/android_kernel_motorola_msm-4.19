@@ -1,0 +1,15 @@
+#
+# SX933X Driver
+#
+
+config SARSENSOR_SX933X
+	tristate "SX933X sarsensor driver"
+	depends on I2C
+	help
+	  Say Y here if you have SX933X SARSENSOR
+	  chip in your system.
+
+	  If unsure, say N.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called sx933x.

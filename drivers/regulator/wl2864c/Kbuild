@@ -1,0 +1,2 @@
+wl2864c-objs += wl2864c-regulator.o
+obj-$(CONFIG_REGULATOR_WL2864C)	+= wl2864c.o
