@@ -410,7 +410,7 @@ struct smb_mmi_charger {
 #define AICL_RANGE2_MIN_MV		5600
 #define AICL_RANGE2_STEP_DELTA_MV	200
 #define AICL_RANGE2_OFFSET		16
-int smblib_get_aicl_cont_threshold(struct smb_mmi_chg_param *param, u8 val_raw)
+int smblib_mmi_get_aicl_cont_threshold(struct smb_mmi_chg_param *param, u8 val_raw)
 {
 	int base = param->min_u;
 	u8 reg = val_raw;
@@ -426,7 +426,7 @@ int smblib_get_aicl_cont_threshold(struct smb_mmi_chg_param *param, u8 val_raw)
 	return base + (reg * step);
 }
 
-int smblib_set_aicl_cont_threshold(struct smb_mmi_chg_param *param,
+int smblib_mmi_set_aicl_cont_threshold(struct smb_mmi_chg_param *param,
 				int val_u, u8 *val_raw)
 {
 	int base = param->min_u;
@@ -484,8 +484,8 @@ static struct smb_mmi_params smb5_pm8150b_params = {
 		.min_u  = 4000,
 		.max_u  = 11800,
 		.step_u = 100,
-		.get_proc = smblib_get_aicl_cont_threshold,
-		.set_proc = smblib_set_aicl_cont_threshold,
+		.get_proc = smblib_mmi_get_aicl_cont_threshold,
+		.set_proc = smblib_mmi_set_aicl_cont_threshold,
 	},
 };
 
@@ -795,7 +795,7 @@ static DEVICE_ATTR(force_max_chrg_temp, 0644,
 
 #define USBIN_CMD_IL_REG	(USBIN_BASE + 0x40)
 #define USBIN_SUSPEND_BIT	BIT(0)
-int smblib_set_usb_suspend(struct smb_mmi_charger *chg, bool suspend)
+int smblib_mmi_set_usb_suspend(struct smb_mmi_charger *chg, bool suspend)
 {
 	int rc = 0;
 
@@ -808,7 +808,7 @@ int smblib_set_usb_suspend(struct smb_mmi_charger *chg, bool suspend)
 	return rc;
 }
 
-int smblib_get_usb_suspend(struct smb_mmi_charger *chg, int *suspend)
+int smblib_mmi_get_usb_suspend(struct smb_mmi_charger *chg, int *suspend)
 {
 	int rc = 0;
 	u8 temp = 0;
@@ -845,7 +845,7 @@ static ssize_t force_chg_usb_suspend_store(struct device *dev,
 		pr_err("SMBMMI: chip not valid\n");
 		return -ENODEV;
 	}
-	r = smblib_set_usb_suspend(mmi_chip, (bool)mode);
+	r = smblib_mmi_set_usb_suspend(mmi_chip, (bool)mode);
 
 	return r ? r : count;
 }
@@ -863,7 +863,7 @@ static ssize_t force_chg_usb_suspend_show(struct device *dev,
 		pr_err("SMBMMI: chip not valid\n");
 		return -ENODEV;
 	}
-	ret = smblib_get_usb_suspend(mmi_chip, &state);
+	ret = smblib_mmi_get_usb_suspend(mmi_chip, &state);
 	if (ret) {
 		mmi_err(mmi_chip, "USBIN_SUSPEND_BIT failed ret = %d\n", ret);
 		state = -EFAULT;
@@ -975,7 +975,7 @@ static DEVICE_ATTR(force_chg_auto_enable, 0664,
 		force_chg_auto_enable_show,
 		force_chg_auto_enable_store);
 
-int smblib_set_charge_param(struct smb_mmi_charger *chg,
+int smblib_mmi_set_charge_param(struct smb_mmi_charger *chg,
 			    struct smb_mmi_chg_param *param, int val_u)
 {
 	int rc = 0;
@@ -1011,7 +1011,7 @@ int smblib_set_charge_param(struct smb_mmi_charger *chg,
 	return rc;
 }
 
-int smblib_get_charge_param(struct smb_mmi_charger *chg,
+int smblib_mmi_get_charge_param(struct smb_mmi_charger *chg,
 			    struct smb_mmi_chg_param *param, int *val_u)
 {
 	int rc = 0;
@@ -1077,7 +1077,7 @@ static ssize_t force_chg_ibatt_show(struct device *dev,
 		goto end;
 	}
 
-	ret = smblib_get_charge_param(mmi_chip, &mmi_chip->param.fcc, &state);
+	ret = smblib_mmi_get_charge_param(mmi_chip, &mmi_chip->param.fcc, &state);
 	if (ret < 0) {
 		mmi_err(mmi_chip, "Factory Couldn't get master fcc rc=%d\n", (int)ret);
 		return ret;
@@ -1152,7 +1152,7 @@ static ssize_t force_chg_iusb_show(struct device *dev,
 		goto end;
 	}
 
-	r = smblib_get_charge_param(mmi_chip, &mmi_chip->param.usb_icl, &state);
+	r = smblib_mmi_get_charge_param(mmi_chip, &mmi_chip->param.usb_icl, &state);
 	if (r < 0) {
 		mmi_err(mmi_chip, "Factory Couldn't get usb_icl rc=%d\n", (int)r);
 		return r;
@@ -1186,7 +1186,7 @@ static ssize_t force_chg_idc_store(struct device *dev,
 		return -ENODEV;
 	}
 	dc_curr *= 1000; /* Convert to uA */
-	r = smblib_set_charge_param(mmi_chip, &mmi_chip->param.dc_icl, dc_curr);
+	r = smblib_mmi_set_charge_param(mmi_chip, &mmi_chip->param.dc_icl, dc_curr);
 	if (r < 0) {
 		mmi_err(mmi_chip, "Factory Couldn't set dc icl = %d rc=%d\n",
 		       (int)dc_curr, (int)r);
@@ -1211,7 +1211,7 @@ static ssize_t force_chg_idc_show(struct device *dev,
 		goto end;
 	}
 
-	r = smblib_get_charge_param(mmi_chip, &mmi_chip->param.dc_icl, &state);
+	r = smblib_mmi_get_charge_param(mmi_chip, &mmi_chip->param.dc_icl, &state);
 	if (r < 0) {
 		mmi_err(mmi_chip, "Factory Couldn't get dc_icl rc=%d\n", (int)r);
 		return r;
@@ -1969,7 +1969,7 @@ static int mmi_increase_vbus_power(struct smb_mmi_charger *chg, int cur_mv)
 			mmi_info(chg, "pulse count = %d, cur_mv = %d\n", pulse_cnt, cur_mv);
 		}
 
-		rc = smblib_set_charge_param(chg, &chg->param.aicl_cont_threshold,
+		rc = smblib_mmi_set_charge_param(chg, &chg->param.aicl_cont_threshold,
 					     HVDCP_VOLTAGE_NOM - 1000);
 		if (rc < 0) {
 			mmi_err(chg, "Couldn't set aicl cont threshold to 9V rc=%d\n", rc);
@@ -3459,7 +3459,7 @@ static void mmi_heartbeat_work(struct work_struct *work)
 		 chg_stat.batt_mv, chg_stat.usb_mv,
 		 prev_vbus_mv, chg_stat.batt_ma);
 
-	rc = smblib_get_usb_suspend(chip, &usb_suspend);
+	rc = smblib_mmi_get_usb_suspend(chip, &usb_suspend);
 	if (rc < 0) {
 		usb_suspend = 0;
 		mmi_err(chip, "Couldn't get USB suspend rc = %d\n", rc);
@@ -3472,13 +3472,13 @@ static void mmi_heartbeat_work(struct work_struct *work)
 		    (chg_stat.batt_ma > REV_BST_MA)) {
 			mmi_err(chip, "Reverse Boosted: Clear, USB Suspend. usb_mv: %d prev_vbus_mv: %d batt_ma: %d \n", chg_stat.usb_mv, prev_vbus_mv, chg_stat.batt_ma);
 			if (chip->factory_mode)
-				smblib_set_usb_suspend(chip, true);
+				smblib_mmi_set_usb_suspend(chip, true);
 			else
 				vote(chip->usb_icl_votable, BOOST_BACK_VOTER,
 				     true, 0);
 			msleep(50);
 			if (chip->factory_mode)
-				smblib_set_usb_suspend(chip, false);
+				smblib_mmi_set_usb_suspend(chip, false);
 			else
 				vote(chip->usb_icl_votable, BOOST_BACK_VOTER,
 				     false, 0);
@@ -3620,7 +3620,7 @@ static int smbchg_reboot(struct notifier_block *nb,
 						0);
 
 			/* Suspend USB and DC */
-			smblib_set_usb_suspend(chg, true);
+			smblib_mmi_set_usb_suspend(chg, true);
 			rc = power_supply_get_property(chg->usb_psy,
 						 POWER_SUPPLY_PROP_VOLTAGE_NOW,
 						 &val);
@@ -4374,7 +4374,7 @@ static int smb_mmi_probe(struct platform_device *pdev)
 	chip->charging_limit_modes = CHARGING_LIMIT_UNKNOWN;
 
 	if (chip->dc_cl_ma >= 0) {
-		rc = smblib_set_charge_param(chip, &chip->param.dc_icl,
+		rc = smblib_mmi_set_charge_param(chip, &chip->param.dc_icl,
 					chip->dc_cl_ma * 1000);
 		if (rc)
 			mmi_err(chip, "Failed to set DC ICL %d\n",
@@ -4384,9 +4384,9 @@ static int smb_mmi_probe(struct platform_device *pdev)
 	/* Workaround for some cables that collapse on boot */
 	if (!chip->factory_mode) {
 		dev_err(chip->dev, "SMBMMI: Suspending USB for 50 ms to clear\n");
-		smblib_set_usb_suspend(chip, true);
+		smblib_mmi_set_usb_suspend(chip, true);
 		msleep(50);
-		smblib_set_usb_suspend(chip, false);
+		smblib_mmi_set_usb_suspend(chip, false);
 	}
 
 	if (chip->factory_mode &&
@@ -4481,7 +4481,7 @@ static int smb_mmi_probe(struct platform_device *pdev)
 		}
 
 		/* Some Cables need a more forced approach */
-		rc = smblib_set_charge_param(chip, &chip->param.usb_icl,
+		rc = smblib_mmi_set_charge_param(chip, &chip->param.usb_icl,
 					     3000000);
 		if (rc < 0)
 			mmi_err(chip,
