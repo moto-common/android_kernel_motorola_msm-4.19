@@ -64,7 +64,7 @@ archive_builtin()
 	# rebuild with llvm-ar to update the symbol table
 	if [ -n "${CONFIG_LTO_CLANG}" ]; then
 		mv -f built-in.a built-in.a.tmp
-		${LLVM_AR} rcsT${KBUILD_ARFLAGS} built-in.a $(${AR} t built-in.a.tmp)
+		${AR} rcsT${KBUILD_ARFLAGS} built-in.a $(${AR} t built-in.a.tmp)
 		rm -f built-in.a.tmp
 	fi
 }
