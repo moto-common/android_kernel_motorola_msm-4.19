@@ -137,7 +137,6 @@ int FPS_register_notifier(struct notifier_block *nb,
 	}
 	return error;
 }
-EXPORT_SYMBOL_GPL(FPS_register_notifier);
 
 int FPS_unregister_notifier(struct notifier_block *nb,
 		unsigned long stype)
@@ -158,7 +157,6 @@ int FPS_unregister_notifier(struct notifier_block *nb,
 
 	return error;
 }
-EXPORT_SYMBOL_GPL(FPS_unregister_notifier);
 
 void FPS_notify(unsigned long stype, int state)
 {
