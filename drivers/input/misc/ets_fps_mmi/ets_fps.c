@@ -93,97 +93,6 @@ int int_mode;
 int detect_period;
 int detect_threshold;
 };
-/* To be compatible with fpc driver */
-#ifndef CONFIG_SENSORS_FPC_1020
-static struct FPS_data {
-	unsigned int enabled;
-	unsigned int state;
-	struct blocking_notifier_head nhead;
-} *fpsData;
-
-struct FPS_data *FPS_init(void)
-{
-	struct FPS_data *mdata;
-	if (!fpsData) {
-		mdata = kzalloc(
-				sizeof(struct FPS_data), GFP_KERNEL);
-		if (mdata) {
-			BLOCKING_INIT_NOTIFIER_HEAD(&mdata->nhead);
-			pr_debug("%s: FPS notifier data structure init-ed\n", __func__);
-		}
-		fpsData = mdata;
-	}
-	return fpsData;
-}
-int FPS_register_notifier(struct notifier_block *nb,
-	unsigned long stype, bool report)
-{
-	int error;
-	struct FPS_data *mdata = fpsData;
-
-	mdata = FPS_init();
-	if (!mdata)
-		return -ENODEV;
-	mdata->enabled = (unsigned int)stype;
-	pr_debug("%s: FPS sensor %lu notifier enabled\n", __func__, stype);
-
-	error = blocking_notifier_chain_register(&mdata->nhead, nb);
-	if (!error && report) {
-		int state = mdata->state;
-		/* send current FPS state on register request */
-		blocking_notifier_call_chain(&mdata->nhead,
-				stype, (void *)&state);
-		pr_debug("%s: FPS reported state %d\n", __func__, state);
-	}
-	return error;
-}
-
-int FPS_unregister_notifier(struct notifier_block *nb,
-		unsigned long stype)
-{
-	int error;
-	struct FPS_data *mdata = fpsData;
-
-	if (!mdata)
-		return -ENODEV;
-
-	error = blocking_notifier_chain_unregister(&mdata->nhead, nb);
-	pr_debug("%s: FPS sensor %lu notifier unregister\n", __func__, stype);
-
-	if (!mdata->nhead.head) {
-		mdata->enabled = 0;
-		pr_debug("%s: FPS sensor %lu no clients\n", __func__, stype);
-	}
-
-	return error;
-}
-
-void FPS_notify(unsigned long stype, int state)
-{
-	struct FPS_data *mdata = fpsData;
-
-	pr_debug("%s: Enter", __func__);
-
-	if (!mdata) {
-		pr_err("%s: FPS notifier not initialized yet\n", __func__);
-		return;
-	}
-
-	pr_debug("%s: FPS current state %d -> (0x%x)\n", __func__,
-		mdata->state, state);
-
-	if (mdata->enabled && mdata->state != state) {
-		mdata->state = state;
-		blocking_notifier_call_chain(&mdata->nhead,
-						stype, (void *)&state);
-		pr_debug("%s: FPS notification sent\n", __func__);
-	} else if (!mdata->enabled) {
-		pr_err("%s: !mdata->enabled", __func__);
-	} else {
-		pr_err("%s: mdata->state==state", __func__);
-	}
-}
-#endif
 
 DECLARE_BITMAP(minors, N_SPI_MINORS);
 LIST_HEAD(device_list);
@@ -478,10 +387,8 @@ static ssize_t etspi_write(struct file *filp,
 static ssize_t etspi_enable_set(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count)
 {
-	int state = (*buf == '1') ? 1 : 0;
-	FPS_notify(0xbeef, state);
-	DEBUG_PRINT("%s  state = %d\n", __func__, state);
-	return 1;
+        /*Implement by vendor if needed*/
+	return 0;
 }
 static DEVICE_ATTR(etspi_enable, S_IWUSR | S_IWGRP, NULL, etspi_enable_set);
 static struct attribute *attributes[] = {
