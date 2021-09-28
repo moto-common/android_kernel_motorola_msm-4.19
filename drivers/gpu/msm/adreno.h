@@ -389,12 +389,6 @@ struct adreno_gpu_core {
 	u32 bus_width;
 };
 
-enum gpu_coresight_sources {
-	GPU_CORESIGHT_GX = 0,
-	GPU_CORESIGHT_CX = 1,
-	GPU_CORESIGHT_MAX,
-};
-
 /**
  * struct adreno_device - The mothership structure for all adreno related info
  * @dev: Reference to struct kgsl_device
@@ -469,7 +463,6 @@ enum gpu_coresight_sources {
  * @ifpc_count: Number of times the GPU went into IFPC
  * @speed_bin: Indicate which power level set to use
  * @highest_bank_bit: Value of the highest bank bit
- * @csdev: Pointer to a coresight device (if applicable)
  * @gpmu_throttle_counters - counteers for number of throttled clocks
  * @irq_storm_work: Worker to handle possible interrupt storms
  * @active_list: List to track active contexts
@@ -549,7 +542,6 @@ struct adreno_device {
 	unsigned int highest_bank_bit;
 	unsigned int quirks;
 
-	struct coresight_device *csdev[GPU_CORESIGHT_MAX];
 	uint32_t gpmu_throttle_counters[ADRENO_GPMU_THROTTLE_COUNTERS];
 	struct work_struct irq_storm_work;
 
@@ -574,7 +566,6 @@ struct adreno_device {
  * @ADRENO_DEVICE_PWRON - Set during init after a power collapse
  * @ADRENO_DEVICE_PWRON_FIXUP - Set if the target requires the shader fixup
  * after power collapse
- * @ADRENO_DEVICE_CORESIGHT - Set if the coresight (trace bus) registers should
  * be restored after power collapse
  * @ADRENO_DEVICE_HANG_INTR - Set if the hang interrupt should be enabled for
  * this target
@@ -595,7 +586,6 @@ enum adreno_device_flags {
 	ADRENO_DEVICE_PWRON = 0,
 	ADRENO_DEVICE_PWRON_FIXUP = 1,
 	ADRENO_DEVICE_INITIALIZED = 2,
-	ADRENO_DEVICE_CORESIGHT = 3,
 	ADRENO_DEVICE_HANG_INTR = 4,
 	ADRENO_DEVICE_STARTED = 5,
 	ADRENO_DEVICE_FAULT = 6,
@@ -606,7 +596,6 @@ enum adreno_device_flags {
 	ADRENO_DEVICE_GPMU_INITIALIZED = 11,
 	ADRENO_DEVICE_ISDB_ENABLED = 12,
 	ADRENO_DEVICE_CACHE_FLUSH_TS_SUSPENDED = 13,
-	ADRENO_DEVICE_CORESIGHT_CX = 14,
 };
 
 /**
@@ -787,53 +776,6 @@ struct adreno_vbif_snapshot_registers {
 	const int count;
 };
 
-/**
- * struct adreno_coresight_register - Definition for a coresight (tracebus)
- * debug register
- * @offset: Offset of the debug register in the KGSL mmio region
- * @initial: Default value to write when coresight is enabled
- * @value: Current shadow value of the register (to be reprogrammed after power
- * collapse)
- */
-struct adreno_coresight_register {
-	unsigned int offset;
-	unsigned int initial;
-	unsigned int value;
-};
-
-struct adreno_coresight_attr {
-	struct device_attribute attr;
-	struct adreno_coresight_register *reg;
-};
-
-ssize_t adreno_coresight_show_register(struct device *device,
-		struct device_attribute *attr, char *buf);
-
-ssize_t adreno_coresight_store_register(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t size);
-
-#define ADRENO_CORESIGHT_ATTR(_attrname, _reg) \
-	struct adreno_coresight_attr coresight_attr_##_attrname  = { \
-		__ATTR(_attrname, 0644, \
-		adreno_coresight_show_register, \
-		adreno_coresight_store_register), \
-		(_reg), }
-
-/**
- * struct adreno_coresight - GPU specific coresight definition
- * @registers - Array of GPU specific registers to configure trace bus output
- * @count - Number of registers in the array
- * @groups - Pointer to an attribute list of control files
- * @atid - The unique ATID value of the coresight device
- */
-struct adreno_coresight {
-	struct adreno_coresight_register *registers;
-	unsigned int count;
-	const struct attribute_group **groups;
-	unsigned int atid;
-};
-
-
 struct adreno_irq_funcs {
 	void (*func)(struct adreno_device *adreno_dev, int mask);
 };
@@ -903,8 +845,6 @@ struct adreno_gpudev {
 	struct adreno_perfcounters *perfcounters;
 	const struct adreno_invalid_countables *invalid_countables;
 	struct adreno_snapshot_data *snapshot_data;
-
-	struct adreno_coresight *coresight[GPU_CORESIGHT_MAX];
 
 	struct adreno_irq *irq;
 	int num_prio_levels;
@@ -1084,13 +1024,6 @@ int adreno_reset(struct kgsl_device *device, int fault);
 void adreno_fault_skipcmd_detached(struct adreno_device *adreno_dev,
 					 struct adreno_context *drawctxt,
 					 struct kgsl_drawobj *drawobj);
-
-int adreno_coresight_init(struct adreno_device *adreno_dev);
-
-void adreno_coresight_start(struct adreno_device *adreno_dev);
-void adreno_coresight_stop(struct adreno_device *adreno_dev);
-
-void adreno_coresight_remove(struct adreno_device *adreno_dev);
 
 bool adreno_hw_isidle(struct adreno_device *adreno_dev);
 
