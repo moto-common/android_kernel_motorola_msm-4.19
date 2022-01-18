@@ -1,0 +1,66 @@
+#
+# Himax v3 touchscreen driver configuration
+#
+config TOUCHSCREEN_HIMAX_V3_MMI_0FLASH
+	bool "Himax v3 touchpanel CHIPSET"
+	depends on SPI_MASTER
+	help
+	  Say Y here if you have a Himax v3 CHIPSET touchscreen.
+	  HIMAX controllers are multi touch controllers which can
+	  report 10 touches at a time.
+
+	  If unsure, say N.
+
+config TOUCHSCREEN_HIMAX_V3_SPI
+	tristate "HIMAX v3 chipset SPI touchscreen"
+	depends on TOUCHSCREEN_HIMAX_V3_MMI_0FLASH
+	help
+	  This enables support for HIMAX v3 CHIPSET over SPI based touchscreens.
+
+config TOUCHSCREEN_HIMAX_INCELL
+	bool "HIMAX chipset in-cell function"
+	depends on TOUCHSCREEN_HIMAX_V3_SPI
+	help
+	  This enables support for HIMAX CHIPSET of in-cell function.
+
+config TOUCHSCREEN_HIMAX_V3_MMI_IC_HX83102D
+	bool "HIMAX v3 chipset HX83102D function"
+	depends on TOUCHSCREEN_HIMAX_INCELL
+	help
+	  This enables support for HIMAX v3 CHIPSET of HX83102D.
+
+config TOUCHSCREEN_HIMAX_DEBUG
+	bool "HIMAX debug function"
+	depends on TOUCHSCREEN_HIMAX_V3_SPI
+	help
+	  This enables support for HIMAX debug function.
+
+config TOUCHSCREEN_HIMAX_INSPECT
+	bool "HIMAX inspect function"
+	depends on TOUCHSCREEN_HIMAX_V3_SPI
+	help
+	  This enables support for HIMAX debug function.
+
+config HMX_DB
+	bool "HIMAX driver test over Dragon Board"
+	depends on TOUCHSCREEN_HIMAX_V3_SPI
+	help
+	  This enables support for HIMAX driver test over Dragon Board.
+
+config TOUCHSCREEN_HIMAX_V3_MMI_ENABLE_PALM
+	bool "HIMAX inspect function"
+	depends on TOUCHSCREEN_HIMAX_V3_SPI
+	help
+	  This enables support for HIMAX v3 palm function.
+
+config TOUCHSCREEN_HIMAX_V3_MMI_ENABLE_DOUBLE_TAP
+	bool "HIMAX inspect function"
+	depends on TOUCHSCREEN_HIMAX_V3_SPI
+	help
+	  This enables support for HIMAX v3 double tap function.
+
+config TOUCHSCREEN_HIMAX_V3_MMI_ENABLE_MULTI_BIN
+	bool "HIMAX inspect function"
+	depends on TOUCHSCREEN_HIMAX_V3_SPI
+	help
+	  This enables support for HIMAX v3 multi bin function.

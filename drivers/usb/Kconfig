@@ -163,6 +163,8 @@ source "drivers/usb/misc/Kconfig"
 
 source "drivers/usb/atm/Kconfig"
 
+source "drivers/usb/moto_f_usbnet/Kconfig"
+
 endif # USB
 
 source "drivers/usb/phy/Kconfig"
