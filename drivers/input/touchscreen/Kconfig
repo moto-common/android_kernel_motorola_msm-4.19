@@ -1355,20 +1355,15 @@ source "drivers/input/touchscreen/focaltech_touch/Kconfig"
 
 source "drivers/input/touchscreen/ft3519/Kconfig"
 
-source "drivers/input/touchscreen/nt36xxx/Kconfig"
-
-config TOUCHSCREEN_HIMAX_CHIPSET
-	bool "Himax touchpanel CHIPSET"
-	depends on I2C
-	help
-	  Say Y here if you have a Himax CHIPSET touchscreen.
-	  HIMAX controllers are multi touch controllers which can
-	  report 10 touches at a time.
-
-	  If unsure, say N.
-source "drivers/input/touchscreen/hxchipset/Kconfig"
-
 source "drivers/input/touchscreen/focaltech_0flash_mmi/Kconfig"
+
+source "drivers/input/touchscreen/nova_0flash_mmi/Kconfig"
+
+source "drivers/input/touchscreen/himax_v3_mmi/Kconfig"
+
+source "drivers/input/touchscreen/ili9882_mmi/Kconfig"
+
+source "drivers/input/touchscreen/chipone_tddi_mmi/Kconfig"
 
 endif
 
