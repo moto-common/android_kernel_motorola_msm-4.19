@@ -469,6 +469,10 @@
 		pinctrl-0 = <&cam_depth_avdd_active>;
 		pinctrl-1 = <&cam_depth_avdd_suspend>;
 	};
+
+	cam_tfe_csid2: qcom,tfe_csid2@5c7c000 {
+		status = "disabled";
+	};
 };
 
 &cam_cci0 {
