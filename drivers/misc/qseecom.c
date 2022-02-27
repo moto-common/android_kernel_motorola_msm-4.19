@@ -9499,6 +9499,10 @@ static int qseecom_register_heap_shmbridge(uint32_t heapid, uint64_t *handle)
 	uint32_t ns_vmids[] = {VMID_HLOS};
 	uint32_t ns_vm_perms[] = {PERM_READ | PERM_WRITE};
 
+#ifdef CONFIG_ARCH_SDM660
+	goto out;
+#endif
+
 	ion_node = of_find_compatible_node(NULL, NULL, "qcom,msm-ion");
 	if (!ion_node) {
 		pr_err("Failed to get qcom,msm-ion node\n");
@@ -9526,6 +9530,9 @@ static int qseecom_register_heap_shmbridge(uint32_t heapid, uint64_t *handle)
 	}
 
 	pr_warn("Could not get heap %d info: No shmbridge created\n", heapid);
+#ifdef CONFIG_ARCH_SDM660
+out:
+#endif
 	return 0;
 }
 
