@@ -85,9 +85,9 @@
 
 		qcom,sde-mixer-stage-base-layer;
 
-		qcom,sde-max-per-pipe-bw-kbps = <2600000 2600000>;
+		qcom,sde-max-per-pipe-bw-kbps = <2800000 2800000>;
 
-		qcom,sde-max-per-pipe-bw-high-kbps = <2600000 2600000>;
+		qcom,sde-max-per-pipe-bw-high-kbps = <2800000 2800000>;
 
 		/* offsets are relative to "mdp_phys + qcom,sde-off */
 		qcom,sde-sspp-clk-ctrl =
@@ -239,10 +239,10 @@
 							"total_max_bw",
 							"camera_concurrency";
 				qcom,sde-limit-ids = <0x1 0x2 0x4 0x8>;
-				qcom,sde-limit-values = <0x1 2600000>,
-							<0x9 2600000>,
-							<0x2 2600000>,
-							<0xa 2600000>,
+				qcom,sde-limit-values = <0x1 2800000>,
+							<0x9 2800000>,
+							<0x2 2800000>,
+							<0xa 2800000>,
 							<0x4 4000000>,
 							<0xc 3100000>;
 			};
