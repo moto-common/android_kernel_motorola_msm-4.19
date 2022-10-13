@@ -90,6 +90,7 @@ struct ini_ic_type ic_types[] = {
 
     {"FT8006U", 0x8900000B},
     {"FT8006S", 0x8901000B},
+    {"FT8006S-AA", 0x9B000019},
 
     {"FT8719",  0x8E00000D},
     {"FT8615",  0x9100000F},
@@ -132,7 +133,7 @@ static int fts_strncmp(const char *cs, const char *ct, int count)
     u8 c1 = 0, c2 = 0;
 
     while (count) {
-        if  ((cs == '\0') || (ct == '\0'))
+        if  ((cs == NULL) || (ct == NULL))
             return -1;
         c1 = TOLOWER(*cs++);
         c2 = TOLOWER(*ct++);

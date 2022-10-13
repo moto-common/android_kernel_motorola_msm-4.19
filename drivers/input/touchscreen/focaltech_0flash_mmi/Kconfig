@@ -34,6 +34,14 @@ config INPUT_FOCALTECH_0FLASH_MMI_IC_NAME_FT8009
 	  Say Y here to enable support for Focaltech FT8009 touch panel.
 	  If unsure, say N.
 
+config INPUT_FOCALTECH_0FLASH_MMI_IC_NAME_FT8006S_AA
+	bool "Focaltech Chip FT8006"
+	depends on TOUCHSCREEN_FTS_0FLASH_MMI
+	default n
+	help
+	  Say Y here to enable support for Focaltech FT8006 touch panel.
+	  If unsure, say N.
+
 config TOUCHSCREEN_FTS_0FLASH_MMI_ENABLE_DOUBLE_TAP
 	bool "Moto Focaltech Double tap"
 	depends on TOUCHSCREEN_FTS_0FLASH_MMI

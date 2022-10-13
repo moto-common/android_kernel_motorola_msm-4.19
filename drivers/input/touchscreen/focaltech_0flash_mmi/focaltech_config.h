@@ -53,6 +53,7 @@
 #define _FT8302             0x83020816
 #define _FT8009             0x80090817
 #define _FT8656             0x86560818
+#define _FT8006S_AA         0x86320819
 
 #define _FT5416             0x54160402
 #define _FT5426             0x54260402
@@ -128,6 +129,9 @@
 #if defined(CONFIG_INPUT_FOCALTECH_0FLASH_MMI_IC_NAME_FT8756)
 #define FTS_CHIP_TYPE   _FT8756
 #define FTS_CHIP_NAME   "ft8756"
+#elif defined(CONFIG_INPUT_FOCALTECH_0FLASH_MMI_IC_NAME_FT8006S_AA)
+#define FTS_CHIP_TYPE   _FT8006S_AA
+#define FTS_CHIP_NAME   "ft8006s_aa"
 #elif defined(CONFIG_INPUT_FOCALTECH_0FLASH_MMI_IC_NAME_FT8719)
 #define FTS_CHIP_TYPE   _FT8719
 #define FTS_CHIP_NAME   "ft8719"
@@ -174,7 +178,36 @@
  * ESD check & protection
  * default: disable
  */
+#ifdef FOCALTECH_ESD_EN
+#define FTS_ESDCHECK_EN                         1
+#if defined(CONFIG_INPUT_FOCALTECH_0FLASH_MMI_IC_NAME_FT8006S_AA)
+#define FTS_DEBUG_ESD_EN                         1
+#else
+#define FTS_DEBUG_ESD_EN                         0
+#endif
+#else
 #define FTS_ESDCHECK_EN                         0
+#endif
+
+/*
+ * irq enable when fts suspend
+ * default: disable
+ */
+#ifdef FOCALTECH_SUSPEND_IRQ_ENABLE
+#define FTS_SUSPEND_IRQ_EN					1
+#else
+#define FTS_SUSPEND_IRQ_EN					0
+#endif
+
+/*
+ * FTS CONFIG_DRM_PANEL check & protection
+ * default: disable
+ */
+#if defined(CONFIG_DRM_PANEL) && defined(CONFIG_INPUT_FOCALTECH_0FLASH_MMI_IC_NAME_FT8006S_AA)
+#define FTS_CONFIG_DRM_PANEL                    1
+#else
+#define FTS_CONFIG_DRM_PANEL                    0
+#endif
 
 /*
  * Production test enable

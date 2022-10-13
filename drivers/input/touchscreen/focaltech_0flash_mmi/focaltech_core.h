@@ -61,13 +61,20 @@
 #include <linux/sched.h>
 #include <linux/kthread.h>
 #include <linux/dma-mapping.h>
+#include <linux/mmi_wake_lock.h>
 #include "focaltech_common.h"
+#if defined(CONFIG_INPUT_TOUCHSCREEN_MMI)
+#include <linux/touchscreen_mmi.h>
+#endif
 #ifdef FTS_USB_DETECT_EN
 #include <linux/power_supply.h>
 #endif
 #if defined(FOCALTECH_SENSOR_EN) || defined(FOCALTECH_PALM_SENSOR_EN)
 #include <linux/sensors.h>
 #define SENSOR_TYPE_MOTO_TOUCH_PALM	(SENSOR_TYPE_DEVICE_PRIVATE_BASE + 31)
+#endif
+#ifdef FOCALTECH_CONFIG_PANEL_NOTIFICATIONS
+#include <linux/panel_notifier.h>
 #endif
 
 /*****************************************************************************
@@ -140,6 +147,7 @@ struct fts_ts_platform_data {
     bool report_gesture_key;
     bool share_reset_gpio;
     bool have_key;
+    bool notify_to_panel;
     u32 key_number;
     u32 keys[FTS_MAX_KEYS];
     u32 key_y_coords[FTS_MAX_KEYS];
@@ -236,6 +244,7 @@ struct fts_ts_data {
 #endif
 
 #if FTS_USB_DETECT_EN
+	bool usb_detect_flag;
 	uint8_t usb_connected;
 	struct notifier_block charger_notif;
 #endif
@@ -257,13 +266,17 @@ struct fts_ts_data {
 #ifdef CONFIG_HAS_WAKELOCK
     struct wake_lock palm_gesture_wakelock;
 #else
-    struct wakeup_source palm_gesture_wakelock;
+    struct wakeup_source *palm_gesture_wakelock;
 #endif
 #ifdef CONFIG_HAS_WAKELOCK
     struct wake_lock palm_gesture_read_wakelock;
 #else
-    struct wakeup_source palm_gesture_read_wakelock;
+    struct wakeup_source *palm_gesture_read_wakelock;
 #endif
+#endif
+
+#if defined(CONFIG_INPUT_TOUCHSCREEN_MMI)
+    struct ts_mmi_class_methods *imports;
 #endif
 };
 
@@ -348,4 +361,6 @@ int fts_ex_mode_recovery(struct fts_ts_data *ts_data);
 
 void fts_irq_disable(void);
 void fts_irq_enable(void);
+int fts_power_source_ctrl(struct fts_ts_data *ts_data, int enable);
+
 #endif /* __LINUX_FOCALTECH_CORE_H__ */
