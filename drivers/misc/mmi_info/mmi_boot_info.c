@@ -28,6 +28,7 @@
 #include <linux/of.h>
 #include <asm/setup.h>
 #include <linux/seq_file.h>
+#include <linux/version.h>
 #include <soc/qcom/mmi_boot_info.h>
 #include <linux/mmi_annotate.h>
 #include "mmi_info.h"
@@ -68,6 +69,7 @@
 #define BOOTMODE_MAX_LEN 64
 static char bootreason[BOOTREASON_MAX_LEN];
 static char bootmode[BOOTMODE_MAX_LEN];
+
 
 static void mmi_bootarg_setup(void)
 {
@@ -276,12 +278,21 @@ static int bootinfo_proc_open(struct inode *inode, struct file *file)
 	return single_open(file, get_bootinfo, PDE_DATA(inode));
 }
 
+#if KERNEL_VERSION(5, 10, 0) <= LINUX_VERSION_CODE
+static const struct proc_ops bootinfo_proc_fops = {
+	.proc_open           = bootinfo_proc_open,
+	.proc_read           = seq_read,
+	.proc_lseek         = seq_lseek,
+	.proc_release        = single_release,
+};
+#else
 static const struct file_operations bootinfo_proc_fops = {
 	.open           = bootinfo_proc_open,
 	.read           = seq_read,
 	.llseek         = seq_lseek,
 	.release        = single_release,
 };
+#endif
 
 int mmi_boot_info_init(void)
 {

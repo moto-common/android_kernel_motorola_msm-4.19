@@ -640,6 +640,7 @@ source "drivers/misc/fpr_FingerprintCard/Kconfig"
 source "drivers/misc/qrc/Kconfig"
 source "drivers/misc/mmi_info/Kconfig"
 source "drivers/misc/mmi_sys_temp/Kconfig"
+source "drivers/misc/mmi_annotate/Kconfig"
 endmenu
 
 config OKL4_USER_VIPC
