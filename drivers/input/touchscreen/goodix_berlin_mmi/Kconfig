@@ -1,0 +1,40 @@
+#
+# Goodix touchscreen driver configuration
+#
+
+menuconfig TOUCHSCREEN_GOODIX_BRL
+	tristate "Goodix berlin touchscreen"
+	help
+	  Say Y here if you have a Goodix berlin series touch controller
+	  to your system.
+
+	  If build module, say M.
+	  If unsure, say N.
+
+if TOUCHSCREEN_GOODIX_BRL
+
+config TOUCHSCREEN_GOODIX_BRL_SPI
+	bool "support SPI bus connection"
+	help
+		Say Y here if the touchscreen is connected via SPI bus.
+
+config TOUCHSCREEN_GOODIX_BRL_I2C
+	tristate "Goodix berlin touchscreen"
+	help
+	  Say Y here if you have a Goodix berlin series touch controller
+	  to your system.
+
+	  If build module, say M.
+	  If unsure, say N.
+
+config GTP_FOD
+	bool "supports FOD"
+	help
+		Say Y here to support FOD.
+
+config GTP_LIMIT_USE_SUPPLIER
+	bool "supports using supplier"
+	help
+		Say Y here to support using supplier.
+
+endif

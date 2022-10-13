@@ -1,0 +1,9 @@
+config MMI_QC3P_WT6670F
+        tristate "MMI QC3P WT6670F"
+        default n
+        help
+         Say Y here if you have a qc3p wt6670f compatible
+         device connected.
+
+         This driver can also be built as a module.  If so, the module
+         will be called mmi_qc3p_wt6670f.

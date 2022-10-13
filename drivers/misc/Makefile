@@ -81,4 +81,5 @@ obj-$(CONFIG_ABOV_SAR_MMI_OVERLAY) += abov_mmi_overlay/
 obj-$(CONFIG_MMI_SYS_TEMP)	+= mmi_sys_temp/
 obj-$(CONFIG_MMI_INFO)		+= mmi_info/
 obj-$(CONFIG_MMI_ANNOTATE)	+= mmi_annotate/
-
+obj-$(CONIG_LDO_VIBRATOR_MMI)	+= ldo_vibrator_mmi/
+obj-$(CONFIG_MMI_RELAY)	+= mmi_relay/

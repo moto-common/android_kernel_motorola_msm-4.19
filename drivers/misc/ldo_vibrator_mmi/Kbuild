@@ -1,0 +1,11 @@
+# add -Wall to try to catch everything we can.
+EXTRA_CFLAGS += -Wall
+
+ifneq ($(filter m y,$(CONFIG_VIBRATOR_NOISE_CAMERA)),)
+	EXTRA_CFLAGS += -DCONFIG_VIBRATOR_NOISE_CAMERA
+endif
+
+ldo_vibrator_mmi-objs += moto_ldo_vibrator.o
+
+obj-$(CONFIG_LDO_VIBRATOR_MMI) += ldo_vibrator_mmi.o
+

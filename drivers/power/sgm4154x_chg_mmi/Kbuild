@@ -1,0 +1,12 @@
+# add -Wall to try to catch everything we can.
+EXTRA_CFLAGS += -Wall
+
+ifneq ($(filter m y,$(CONFIG_MMI_QC3P_TURBO_CHARGER)),)
+        ccflags-y += -DCONFIG_MMI_QC3P_TURBO_CHARGER
+endif
+
+ifneq ($(filter m y,$(CONFIG_MMI_QC3P_WT6670_DETECTED)),)
+        ccflags-y += -DCONFIG_MMI_QC3P_WT6670_DETECTED
+endif
+
+obj-$(CONFIG_SGM4154X_CHARGER) += sgm4154x_charger.o

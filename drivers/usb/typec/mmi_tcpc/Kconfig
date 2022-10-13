@@ -1,0 +1,41 @@
+config TCPC_RT1711H
+        tristate "TCPC RT1711H driver"
+        default n
+        depends on TCPC_CLASS
+        help
+         Say Y here if you have a rt1711h compatible
+         device connected.
+
+         This driver can also be built as a module.  If so, the module
+         will be called tcpc_rt1711h.
+
+config TCPC_SGM7220
+        tristate "TCPC SGM7220 driver"
+        default n
+        depends on TCPC_CLASS
+        help
+         Say Y here if you have a sgm7220 compatible
+         device connected.
+
+         This driver can also be built as a module.  If so, the module
+         will be called tcpc_sgm7220.
+
+config TCPC_CLASS
+        tristate "TCPC Class driver"
+        default n
+        help
+         Say Y here if you have a tcpc compatible
+         device connected.
+
+         This driver can also be built as a module.  If so, the module
+         will be called tcpc_class.
+
+config RT_PD_MANAGER
+        tristate "RT PD Manager driver"
+        default n
+        help
+         Say Y here if you have a RT PD compatible
+         device connected.
+
+         This driver can also be built as a module.  If so, the module
+         will be called rt_pd_manager.

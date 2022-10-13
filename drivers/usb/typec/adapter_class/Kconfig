@@ -1,0 +1,9 @@
+config TYPEC_ADAPTER_CLASS
+        tristate "Type-C Adapter Class support"
+        default n
+        help
+         Say Y here if you have a tcpc compatible
+         device connected.
+
+         This driver can also be built as a module.  If so, the module
+         will be called typec_adapter_class.

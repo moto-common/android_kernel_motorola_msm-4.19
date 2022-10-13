@@ -1,0 +1,2 @@
+obj-$(CONFIG_BQ2597X_MMI_IIO_CHARGER) += bq2597x_mmi_iio.o
+

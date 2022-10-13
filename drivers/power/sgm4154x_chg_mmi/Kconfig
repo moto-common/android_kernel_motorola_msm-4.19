@@ -1,0 +1,9 @@
+config SGM4154X_CHARGER
+        tristate "SGM4154X Charger"
+        default n
+        help
+         Say Y here if you have a sgm4154x compatible
+         device connected.
+
+         This driver can also be built as a module.  If so, the module
+         will be called sgm4154x_charger.

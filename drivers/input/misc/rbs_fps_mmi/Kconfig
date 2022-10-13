@@ -1,0 +1,25 @@
+config INPUT_EGIS_FPS_MMI
+	tristate "EGIS fingerprint sensor MMI"
+	default n
+	help
+	 Say Y here if you wish to include support for MMI EGIS finger print sensor.
+	 If unsure, say N.
+
+config ET721_FOD
+	bool "FOD Support for egis"
+	default n
+	depends on INPUT_EGIS_FPS_MMI
+	help
+	 Say Y here if you wish to include support for MMI EGIS finger print sensor
+         FOD support.
+	 If unsure, say N.
+
+config EGIS_PANEL_NOTIFICATIONS
+	bool "Panel Notification Support for egis"
+	default n
+	depends on INPUT_EGIS_FPS_MMI
+	help
+	 Say Y here if you wish to include support for MMI EGIS finger print sensor
+         panel notification framework support.
+	 If unsure, say N.
+

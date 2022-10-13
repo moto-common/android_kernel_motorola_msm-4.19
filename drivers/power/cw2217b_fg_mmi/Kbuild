@@ -1,0 +1,5 @@
+# add -Wall to try to catch everything we can.
+EXTRA_CFLAGS += -Wall
+
+cw2217b_fg-objs += cw2217B_fuel_gauge_base.o
+obj-$(CONFIG_CW2217B_FG) += cw2217b_fg.o

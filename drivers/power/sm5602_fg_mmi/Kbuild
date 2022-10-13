@@ -1,0 +1,2 @@
+sm5602_fg_mmi-objs += sm5602_fg.o
+obj-$(CONFIG_SM5602_FG) += sm5602_fg_mmi.o

@@ -1,0 +1,29 @@
+# add -Wall to try to catch everything we can.
+obj-$(CONFIG_TOUCHSCREEN_FOCALTECH_V3_MMI) += focaltech_v3_mmi.o
+focaltech_v3_mmi-objs += focaltech_core.o
+focaltech_v3_mmi-objs += focaltech_ex_fun.o
+focaltech_v3_mmi-objs += focaltech_ex_mode.o
+focaltech_v3_mmi-objs += focaltech_gesture.o
+focaltech_v3_mmi-objs += focaltech_esdcheck.o
+focaltech_v3_mmi-objs += focaltech_point_report_check.o
+focaltech_v3_mmi-objs += focaltech_flash.o
+focaltech_v3_mmi-objs += focaltech_i2c.o
+
+ifeq ($(CONFIG_INPUT_FOCALTECH_MMI_IC_FT3519),y)
+	EXTRA_CFLAGS += -DCONFIG_FTS_IC_NAME_FT3519
+	focaltech_v3_mmi-objs += focaltech_flash/focaltech_upgrade_ft5452i.o
+endif
+
+ifeq ($(CONFIG_INPUT_FOCALTECH_MMI_IC_FT3518U),y)
+	EXTRA_CFLAGS += -DCONFIG_FTS_IC_NAME_FT3518U
+	focaltech_v3_mmi-objs += focaltech_flash/focaltech_upgrade_ft3518u.o
+endif
+
+ifneq ($(filter m y,$(CONFIG_INPUT_TOUCHSCREEN_MMI)),)
+       EXTRA_CFLAGS += -DCONFIG_INPUT_TOUCHSCREEN_MMI
+       focaltech_v3_mmi-objs += focaltech_ts_mmi.o
+endif
+
+ifneq ($(filter m y,$(CONFIG_INPUT_FOCALTECH_MMI_ENABLE_DOUBLE_TAP)),)
+	EXTRA_CFLAGS += -DFOCALTECH_SENSOR_EN
+endif
