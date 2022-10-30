@@ -192,3 +192,4 @@ obj-$(CONFIG_UNISYS_VISORBUS)	+= visorbus/
 obj-$(CONFIG_SIOX)		+= siox/
 obj-$(CONFIG_GNSS)		+= gnss/
 obj-y				+= sensors/
+obj-y				+= backlight/
