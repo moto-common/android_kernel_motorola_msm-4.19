@@ -41,8 +41,13 @@
 #ifdef FOCALTECH_PEN_NOTIFIER
 #include <linux/pen_detection_notify.h>
 #endif
+#include "focaltech_config.h"
 #ifdef CONFIG_DRM
+#if FTS_CONFIG_DRM_PANEL
+	#include <drm/drm_panel.h>
+#else
 	#include <linux/msm_drm_notify.h>
+#endif
 #elif defined(CONFIG_FB)
 	#include <linux/notifier.h>
 	#include <linux/fb.h>
@@ -52,15 +57,26 @@
 #endif
 #include "focaltech_core.h"
 
+#ifdef CONFIG_INPUT_TOUCHSCREEN_MMI
+extern int fts_mmi_dev_register(struct fts_ts_data *ts_data);
+extern void fts_mmi_dev_unregister(struct fts_ts_data *ts_data);
+#endif
+
+#ifdef FOCALTECH_CONFIG_PANEL_NOTIFICATIONS
+#define register_panel_notifier panel_register_notifier
+#define unregister_panel_notifier panel_unregister_notifier
+enum touch_state {
+	TOUCH_DEEP_SLEEP_STATE = 0,
+	TOUCH_LOW_POWER_STATE,
+};
+#endif
+
 /*****************************************************************************
 * Private constant and macro definitions using #define
 *****************************************************************************/
 #define FTS_DRIVER_NAME                     "fts_ts"
 #define INTERVAL_READ_REG                   200  /* unit:ms */
 #define TIMEOUT_READ_REG                    1000 /* unit:ms */
-#if FTS_USB_DETECT_EN
-bool 	FTS_USB_detect_flag;
-#endif
 #if FTS_POWER_SOURCE_CUST_EN
 #define FTS_VTG_MIN_UV                      2800000
 #define FTS_VTG_MAX_UV                      3300000
@@ -99,8 +115,10 @@ static struct sensors_classdev __maybe_unused palm_sensors_touch_cdev = {
 #ifdef FOCALTECH_PEN_NOTIFIER
 static int fts_mcu_pen_detect_set(uint8_t pen_detect);
 #endif
+#ifndef CONFIG_INPUT_TOUCHSCREEN_MMI
 static int fts_ts_suspend(struct device *dev);
 static int fts_ts_resume(struct device *dev);
+#endif
 
 /*****************************************************************************
 *  Name: fts_wait_tp_to_valid
@@ -464,6 +482,25 @@ static int fts_input_report_b(struct fts_ts_data *data)
         input_mt_slot(data->input_dev, events[i].id);
 
         if (EVENT_DOWN(events[i].flag)) {
+#ifdef CONFIG_INPUT_TOUCHSCREEN_MMI
+            if ( FTS_TOUCH_DOWN == events[i].flag && data->imports
+                    && data->imports->report_touch_event) {
+                struct touch_event_data touch_event;
+                memset(&touch_event, 0, sizeof(touch_event));
+                touch_event.type = TS_COORDINATE_ACTION_PRESS;
+                touch_event.id = events[i].id;
+                touch_event.x = events[i].x;
+                touch_event.y = events[i].y;
+                touch_event.major = events[i].area;
+                data->imports->report_touch_event(&touch_event, data->input_dev);
+                if (touch_event.skip_report) {
+                    /* input event is reported by touchscreen class.
+                     * vendor touch event may need update based on touch_event
+                     */
+                    continue;
+                }
+            }
+#endif
             input_mt_report_slot_state(data->input_dev, MT_TOOL_FINGER, true);
 
 #if FTS_REPORT_PRESSURE_EN
@@ -491,6 +528,21 @@ static int fts_input_report_b(struct fts_ts_data *data)
             }
         } else {
             uppoint++;
+#ifdef CONFIG_INPUT_TOUCHSCREEN_MMI
+            if (data->imports && data->imports->report_touch_event) {
+                struct touch_event_data touch_event;
+                memset(&touch_event, 0, sizeof(touch_event));
+                touch_event.type = TS_COORDINATE_ACTION_RELEASE;
+                touch_event.id = events[i].id;
+                data->imports->report_touch_event(&touch_event, data->input_dev);
+                if (touch_event.skip_report) {
+                    /* input event is reported by touchscreen class.
+                     * vendor touch event may need update based on touch_event
+                     */
+                    continue;
+                }
+            }
+#endif
             input_mt_report_slot_state(data->input_dev, MT_TOOL_FINGER, false);
             data->touchs &= ~BIT(events[i].id);
             if (data->log_level >= 1) {
@@ -607,6 +659,11 @@ static int fts_read_touchdata(struct fts_ts_data *data)
     buf[0] = 0x01;
     ret = fts_read(buf, 1, buf + 1, data->pnt_buf_size - 1);
     if ((0xEF == buf[1]) && (0xEF == buf[2]) && (0xEF == buf[3]))
+#elif defined(CONFIG_INPUT_FOCALTECH_0FLASH_MMI_IC_NAME_FT8006S_AA)
+    buf[0] = 0x01;
+    ret = fts_read(buf, 1, buf + 1, data->pnt_buf_size - 1);
+    if (((0xEF == buf[2]) && (0xEF == buf[3]) && (0xEF == buf[4]))
+    || ((ret < 0) && (0xEF == buf[1])))
 #elif defined(CONFIG_INPUT_FOCALTECH_0FLASH_MMI_IC_NAME_FT8719)
     ret = fts_read(NULL, 0, buf + 1, data->pnt_buf_size - 1);
     if ((0xEF == buf[2]) && (0xEF == buf[3]) && (0xEF == buf[4]))
@@ -702,7 +759,7 @@ static int fts_read_parse_touchdata(struct fts_ts_data *data)
                 wake_lock_timeout(&fts_data->palm_gesture_wakelock,
                                   fts_data->palm_release_delay_ms);
 #else
-                __pm_wakeup_event(&fts_data->palm_gesture_wakelock,
+                PM_WAKEUP_EVENT(fts_data->palm_gesture_wakelock,
                                   fts_data->palm_release_delay_ms);
 #endif
                 return -1;
@@ -801,7 +858,7 @@ void fts_cable_detect_func(bool force_renew)
 {
 	struct fts_ts_data *ts_data = fts_data;
 	uint8_t connect_status = 0;
-	connect_status = FTS_USB_detect_flag;
+	connect_status = ts_data->usb_detect_flag;
 
 	if ((connect_status != ts_data->usb_connected) || force_renew) {
 		if (connect_status) {
@@ -1020,7 +1077,7 @@ static int _fts_palm_sensor_set_enable(unsigned int enable)
 #ifdef CONFIG_HAS_WAKELOCK
         wake_lock(&fts_data->palm_gesture_read_wakelock);
 #else
-        __pm_stay_awake(&fts_data->palm_gesture_read_wakelock);
+        PM_STAY_AWAKE(fts_data->palm_gesture_read_wakelock);
 #endif
         fts_data->palm_detection_enabled = true;
         fts_write_reg(0xB0, 0x01);
@@ -1034,7 +1091,7 @@ static int _fts_palm_sensor_set_enable(unsigned int enable)
 #ifdef CONFIG_HAS_WAKELOCK
         wake_unlock(&fts_data->palm_gesture_read_wakelock);
 #else
-        __pm_relax(&fts_data->palm_gesture_read_wakelock);
+        PM_RELAX(fts_data->palm_gesture_read_wakelock);
 #endif
     } else {
         FTS_INFO("unknown enable symbol\n");
@@ -1111,12 +1168,20 @@ static int fts_palm_sensor_init(struct fts_ts_data *data)
 #ifdef CONFIG_HAS_WAKELOCK
     wake_lock_init(&data->palm_gesture_wakelock, WAKE_LOCK_SUSPEND, "palm_detect_wl");
 #else
-    wakeup_source_init(&data->palm_gesture_wakelock, "palm_detect_wl");
+    PM_WAKEUP_REGISTER(NULL, data->palm_gesture_wakelock, "palm_detect_wl");
+    if (!data->palm_gesture_wakelock) {
+        FTS_ERROR("Unable to register device, err=%d", err);
+        goto unregister_sensor_input_device;
+    }
 #endif
 #ifdef CONFIG_HAS_WAKELOCK
     wake_lock_init(&data->palm_gesture_read_wakelock, WAKE_LOCK_SUSPEND, "palm_read_wl");
 #else
-    wakeup_source_init(&data->palm_gesture_read_wakelock, "palm_read_wl");
+    PM_WAKEUP_REGISTER(NULL, data->palm_gesture_read_wakelock, "palm_read_wl");
+    if (!data->palm_gesture_wakelock) {
+        FTS_ERROR("Unable to register device, err=%d", err);
+        goto unregister_sensor_input_device;
+    }
 #endif
 
     data->palm_release_fimer.function = fts_palm_sensor_release_timer_handler;
@@ -1145,12 +1210,12 @@ int fts_palm_sensor_remove(struct fts_ts_data *data)
 #ifdef CONFIG_HAS_WAKELOCK
     wake_lock_destroy(&data->palm_gesture_wakelock);
 #else
-    wakeup_source_trash(&data->palm_gesture_wakelock);
+    PM_WAKEUP_UNREGISTER(data->palm_gesture_wakelock);
 #endif
 #ifdef CONFIG_HAS_WAKELOCK
     wake_lock_destroy(&data->palm_gesture_read_wakelock);
 #else
-    wakeup_source_trash(&data->palm_gesture_read_wakelock);
+    PM_WAKEUP_UNREGISTER(data->palm_gesture_read_wakelock);
 #endif
     data->palm_sensor_pdata = NULL;
     data->palm_detection_enabled = false;
@@ -1254,7 +1319,7 @@ static int fts_pinctrl_select_release(struct fts_ts_data *ts)
 }
 #endif /* FTS_PINCTRL_EN */
 
-static int fts_power_source_ctrl(struct fts_ts_data *ts_data, int enable)
+int fts_power_source_ctrl(struct fts_ts_data *ts_data, int enable)
 {
     int ret = 0;
 
@@ -1583,6 +1648,10 @@ static int fts_parse_dt(struct device *dev, struct fts_ts_platform_data *pdata)
     if (pdata->report_gesture_key)
         FTS_INFO("Report tap gesture as key.");
 
+    pdata->notify_to_panel = of_property_read_bool(np, "focaltech,notify_to_panel");
+    if (pdata->notify_to_panel)
+        FTS_INFO("Notify touch status to panel.");
+
     pdata->irq_gpio = of_get_named_gpio_flags(np, "focaltech,irq-gpio",
                       0, &pdata->irq_gpio_flags);
     if (pdata->irq_gpio < 0)
@@ -1617,6 +1686,7 @@ static int fts_parse_dt(struct device *dev, struct fts_ts_platform_data *pdata)
     return 0;
 }
 
+#ifndef CONFIG_INPUT_TOUCHSCREEN_MMI
 #if defined(CONFIG_FB) || defined(CONFIG_DRM)
 static void fts_resume_work(struct work_struct *work)
 {
@@ -1625,6 +1695,7 @@ static void fts_resume_work(struct work_struct *work)
 
     fts_ts_resume(ts_data->dev);
 }
+#endif
 #endif
 
 #ifdef FOCALTECH_PEN_NOTIFIER
@@ -1655,7 +1726,127 @@ static int pen_notifier_callback(struct notifier_block *self,
 }
 #endif
 
+#ifndef CONFIG_INPUT_TOUCHSCREEN_MMI
 #ifdef CONFIG_DRM
+#if FTS_CONFIG_DRM_PANEL
+struct drm_panel *active_panel;
+static int drm_check_dt(struct device_node *np)
+{
+    int i = 0;
+    int count = 0;
+    struct device_node *node = NULL;
+    struct drm_panel *panel = NULL;
+
+    count = of_count_phandle_with_args(np, "panel", NULL);
+    if (count <= 0) {
+        FTS_ERROR("find drm_panel count(%d) fail", count);
+        return -ENODEV;
+    }
+
+    for (i = 0; i < count; i++) {
+        node = of_parse_phandle(np, "panel", i);
+        panel = of_drm_find_panel(node);
+        of_node_put(node);
+        if (!IS_ERR(panel)) {
+            FTS_INFO("find drm_panel successfully");
+            active_panel = panel;
+            return 0;
+        }
+    }
+
+    FTS_ERROR("no find drm_panel");
+    return -ENODEV;
+}
+
+static int fts_ts_check_default_tp(struct device_node *dt, const char *prop)
+{
+    const char **active_tp = NULL;
+    int count, tmp, score = 0;
+    const char *active;
+    int ret, i;
+
+    count = of_property_count_strings(dt->parent, prop);
+    if (count <= 0 || count > 3)
+        return -ENODEV;
+
+    active_tp = kcalloc(count, sizeof(char *),  GFP_KERNEL);
+    if (!active_tp) {
+        FTS_ERROR("FTS alloc failed\n");
+        return -ENOMEM;
+    }
+
+    ret = of_property_read_string_array(dt->parent, prop,
+            active_tp, count);
+    if (ret < 0) {
+        FTS_ERROR("fail to read %s %d\n", prop, ret);
+        ret = -ENODEV;
+        goto out;
+    }
+
+    for (i = 0; i < count; i++) {
+        active = active_tp[i];
+        if (active != NULL) {
+            tmp = of_device_is_compatible(dt, active);
+            if (tmp > 0)
+                score++;
+        }
+    }
+
+    if (score <= 0) {
+        FTS_ERROR("not match this driver\n");
+        ret = -ENODEV;
+        goto out;
+    }
+    ret = 0;
+out:
+    kfree(active_tp);
+    return ret;
+}
+
+int drm_notifier_callback(struct notifier_block *self, unsigned long event, void *data)
+{
+	struct drm_panel_notifier *evdata = data;
+	int *blank = NULL;
+	struct fts_ts_data *ts_data = container_of(self, struct fts_ts_data, fb_notif);
+
+	if (!evdata) {
+		FTS_ERROR("evdata is null");
+		return 0;
+	}
+
+	if (!((event == DRM_PANEL_EARLY_EVENT_BLANK )
+		  || (event == DRM_PANEL_EVENT_BLANK))) {
+		FTS_INFO("event(%lu) do not need process\n", event);
+		return 0;
+	}
+
+	blank = evdata->data;
+	FTS_INFO("DRM event:%lu,blank:%d", event, *blank);
+	switch (*blank) {
+	case DRM_PANEL_BLANK_UNBLANK:
+		if (DRM_PANEL_EARLY_EVENT_BLANK == event) {
+			FTS_INFO("resume: event = %lu, not care\n", event);
+		} else if (DRM_PANEL_EVENT_BLANK == event) {
+			queue_work(fts_data->ts_workqueue, &fts_data->resume_work);
+		}
+		break;
+	case DRM_PANEL_BLANK_POWERDOWN:
+		if (DRM_PANEL_EARLY_EVENT_BLANK == event) {
+			cancel_work_sync(&fts_data->resume_work);
+			fts_ts_suspend(ts_data->dev);
+		} else if (DRM_PANEL_EVENT_BLANK == event) {
+			FTS_INFO("suspend: event = %lu, not care\n", event);
+		}
+		break;
+	default:
+		FTS_INFO("DRM BLANK(%d) do not need process\n", *blank);
+		break;
+	}
+
+	return 0;
+}
+#else
+#ifndef FOCALTECH_CONFIG_PANEL_NOTIFICATIONS
 int drm_notifier_callback(struct notifier_block *self,
 				unsigned long event, void *data)
 {
@@ -1709,6 +1900,47 @@ int drm_notifier_callback(struct notifier_block *self,
 
 	return 0;
 }
+#else
+int drm_notifier_callback(struct notifier_block *self,
+				unsigned long event, void *data)
+{
+	struct msm_drm_notifier *evdata = data;
+	struct fts_ts_data *ts_data =
+		container_of(self, struct fts_ts_data, fb_notif);
+
+	if (!evdata || (evdata->id != 0)) {
+		return 0;
+    }
+
+    FTS_INFO("DRM event:%lu", event);
+    switch (event) {
+    case PANEL_EVENT_DISPLAY_ON:
+            queue_work(fts_data->ts_workqueue, &fts_data->resume_work);
+        break;
+    case PANEL_EVENT_PRE_DISPLAY_OFF:
+            cancel_work_sync(&fts_data->resume_work);
+            fts_ts_suspend(ts_data->dev);
+#ifdef FOCALTECH_SENSOR_EN
+            if (fts_data->should_enable_gesture) {
+                FTS_INFO("double tap gesture suspend\n");
+		  touch_set_state(TOUCH_LOW_POWER_STATE, TOUCH_PANEL_IDX_PRIMARY);
+		  fts_gesture_suspend(ts_data);
+            } else {
+#endif
+                touch_set_state(TOUCH_DEEP_SLEEP_STATE, TOUCH_PANEL_IDX_PRIMARY);
+                fts_ts_suspend(ts_data->dev);
+#ifdef FOCALTECH_SENSOR_EN
+            }
+#endif
+        break;
+    default:
+        break;
+    }
+
+	return 0;
+}
+#endif
+#endif
 #elif defined(CONFIG_FB)
 static int fb_notifier_callback(struct notifier_block *self,
                                 unsigned long event, void *data)
@@ -1765,7 +1997,9 @@ static void fts_ts_late_resume(struct early_suspend *handler)
     fts_ts_resume(ts_data->dev);
 }
 #endif
+#endif
 
+#ifndef CONFIG_INPUT_TOUCHSCREEN_MMI
 #if FTS_USB_DETECT_EN
 static int fts_charger_notifier_callback(struct notifier_block *nb,
 								unsigned long val, void *v) {
@@ -1786,7 +2020,7 @@ static int fts_charger_notifier_callback(struct notifier_block *nb,
 				FTS_ERROR("Couldn't get POWER_SUPPLY_PROP_ONLINE rc=%d\n", ret);
 				return ret;
 			} else {
-				FTS_USB_detect_flag = prop.intval;
+				ts->usb_detect_flag = prop.intval;
 				//FTS_ERROR("usb prop.intval =%d\n", prop.intval);
 			}
 		}
@@ -1794,11 +2028,15 @@ static int fts_charger_notifier_callback(struct notifier_block *nb,
 	return 0;
 }
 #endif
+#endif
 
 static int fts_ts_probe_entry(struct fts_ts_data *ts_data)
 {
     int ret = 0;
     int pdata_size = sizeof(struct fts_ts_platform_data);
+#if FTS_CONFIG_DRM_PANEL
+	struct device_node *dp = ts_data->dev->of_node;
+#endif
 
     FTS_FUNC_ENTER();
     FTS_INFO("%s", FTS_DRIVER_VERSION);
@@ -1812,6 +2050,16 @@ static int fts_ts_probe_entry(struct fts_ts_data *ts_data)
         ret = fts_parse_dt(ts_data->dev, ts_data->pdata);
         if (ret)
             FTS_ERROR("device-tree parse fail");
+#if FTS_CONFIG_DRM_PANEL
+	if (drm_check_dt(dp)) {
+		FTS_ERROR("parse drm-panel fail");
+		if (!fts_ts_check_default_tp(dp, "qcom,spi-touch-active"))
+			ret = -EPROBE_DEFER;
+		else
+			ret = -ENODEV;
+		return ret;
+	}
+#endif
     } else {
         if (ts_data->dev->platform_data) {
             memcpy(ts_data->pdata, ts_data->dev->platform_data, pdata_size);
@@ -1953,15 +2201,33 @@ static int fts_ts_probe_entry(struct fts_ts_data *ts_data)
     }
 #endif
 
+#ifndef CONFIG_INPUT_TOUCHSCREEN_MMI
 #ifdef CONFIG_DRM
     if (ts_data->ts_workqueue) {
         INIT_WORK(&ts_data->resume_work, fts_resume_work);
     }
     ts_data->fb_notif.notifier_call = drm_notifier_callback;
+#if FTS_CONFIG_DRM_PANEL
+    if (active_panel) {
+        ret = drm_panel_notifier_register(active_panel, &ts_data->fb_notif);
+        if (ret)
+            FTS_ERROR("[DRM]drm_panel_notifier_register fail: %d\n", ret);
+    } else {
+        FTS_ERROR("[DRM]drm_panel_notifier_register fail: active_panel NULL!\n");
+    }
+#else
+#ifndef FOCALTECH_CONFIG_PANEL_NOTIFICATIONS
     ret = msm_drm_register_client(&ts_data->fb_notif);
     if (ret) {
         FTS_ERROR("[DRM]Unable to register fb_notifier: %d\n", ret);
     }
+#else
+    ret = register_panel_notifier(&ts_data->fb_notif);
+    if(ret) {
+        FTS_ERROR("register panel_notifier failed. ret=%d\n", ret);
+    }
+#endif
+#endif
 #elif defined(CONFIG_FB)
     if (ts_data->ts_workqueue) {
         INIT_WORK(&ts_data->resume_work, fts_resume_work);
@@ -1977,7 +2243,9 @@ static int fts_ts_probe_entry(struct fts_ts_data *ts_data)
     ts_data->early_suspend.resume = fts_ts_late_resume;
     register_early_suspend(&ts_data->early_suspend);
 #endif
+#endif
 
+#ifndef CONFIG_INPUT_TOUCHSCREEN_MMI
 #if FTS_USB_DETECT_EN
 	ts_data->usb_connected = 0x00;
 	ts_data->charger_notif.notifier_call = fts_charger_notifier_callback;
@@ -1987,14 +2255,21 @@ static int fts_ts_probe_entry(struct fts_ts_data *ts_data)
 		goto err_register_charger_notify_failed;
 	}
 #endif
+#endif
+
+#ifdef CONFIG_INPUT_TOUCHSCREEN_MMI
+    fts_mmi_dev_register(ts_data);
+#endif
 
     FTS_FUNC_EXIT();
     return 0;
 
+#ifndef CONFIG_INPUT_TOUCHSCREEN_MMI
 #if FTS_USB_DETECT_EN
 err_register_charger_notify_failed:
 if (ts_data->charger_notif.notifier_call)
 	power_supply_unreg_notifier(&ts_data->charger_notif);
+#endif
 #endif
 
 err_irq_req:
@@ -2027,9 +2302,15 @@ static int fts_ts_remove_entry(struct fts_ts_data *ts_data)
 {
     FTS_FUNC_ENTER();
 
+#ifdef CONFIG_INPUT_TOUCHSCREEN_MMI
+    fts_mmi_dev_unregister(ts_data);
+#endif
+
+#ifndef CONFIG_INPUT_TOUCHSCREEN_MMI
 #if FTS_USB_DETECT_EN
 	if (ts_data->charger_notif.notifier_call)
 		power_supply_unreg_notifier(&ts_data->charger_notif);
+#endif
 #endif
 
 #if FTS_POINT_REPORT_CHECK_EN
@@ -2075,14 +2356,23 @@ static int fts_ts_remove_entry(struct fts_ts_data *ts_data)
     if (pen_detection_unregister_client(&ts_data->pen_notif))
         FTS_ERROR("Error occurred while unregistering pen_notifier.\n");
 #endif
+#ifndef CONFIG_INPUT_TOUCHSCREEN_MMI
 #ifdef CONFIG_DRM
+#if FTS_CONFIG_DRM_PANEL
+    if (active_panel) {
+        if(drm_panel_notifier_unregister(active_panel, &ts_data->fb_notif))
+            FTS_ERROR("Error occurred while unregistering panel fb_notifier.\n");
+    }
+#else
     if (msm_drm_unregister_client(&ts_data->fb_notif))
         FTS_ERROR("Error occurred while unregistering fb_notifier.\n");
+#endif
 #elif defined(CONFIG_FB)
     if (fb_unregister_client(&ts_data->fb_notif))
         FTS_ERROR("Error occurred while unregistering fb_notifier.\n");
 #elif defined(CONFIG_HAS_EARLYSUSPEND)
     unregister_early_suspend(&ts_data->early_suspend);
+#endif
 #endif
 
     if (gpio_is_valid(ts_data->pdata->reset_gpio))
@@ -2106,6 +2396,7 @@ static int fts_ts_remove_entry(struct fts_ts_data *ts_data)
     return 0;
 }
 
+#ifndef CONFIG_INPUT_TOUCHSCREEN_MMI
 static int _fts_ts_suspend(struct device *dev)
 {
     int ret = 0;
@@ -2169,7 +2460,10 @@ static int _fts_ts_suspend(struct device *dev)
 #endif
 #endif
 
+#if (!FTS_SUSPEND_IRQ_EN)
     fts_irq_disable();
+#endif
+
     /* TP enter sleep mode */
     ret = fts_write_reg(FTS_REG_POWER_MODE, FTS_REG_POWER_MODE_SLEEP_VALUE);
     if (ret < 0)
@@ -2244,7 +2538,9 @@ static int _fts_ts_resume(struct device *dev)
         fts_reset_proc(200);
     }
 
+#if (!FTS_SUSPEND_IRQ_EN)
     fts_irq_enable();
+#endif
 
     if (ts_data->pdata->dlfw_in_resume) {
         ret = fts_wait_tp_to_valid();
@@ -2325,6 +2621,7 @@ static int fts_ts_resume(struct device *dev)
 
     return ret;
 }
+#endif
 
 /*****************************************************************************
 * TP Driver
@@ -2336,6 +2633,7 @@ static int fts_ts_probe(struct spi_device *spi)
 
     FTS_INFO("Touch Screen(SPI BUS) driver prboe...");
 #if defined(CONFIG_INPUT_FOCALTECH_0FLASH_MMI_IC_NAME_FT8756) || \
+	defined (CONFIG_INPUT_FOCALTECH_0FLASH_MMI_IC_NAME_FT8006S_AA) || \
 	defined (CONFIG_INPUT_FOCALTECH_0FLASH_MMI_IC_NAME_FT8009)
     spi->mode = SPI_MODE_0;
 #elif defined(CONFIG_INPUT_FOCALTECH_0FLASH_MMI_IC_NAME_FT8719)
