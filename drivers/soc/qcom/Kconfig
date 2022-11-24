@@ -965,3 +965,13 @@ config ICNSS_QMI
 	  over QMI channel.
 
 source "drivers/soc/qcom/wcnss/Kconfig"
+
+config MOTOROLA_DTB
+	bool "Motorola specific DTB selection"
+	help
+	  Say 'Y' here to enable selection of Motorola specific DTB.
+
+config MOTOROLA_BECKHAM_DTB
+	bool "Motorola Z3 Play (Beckham)"
+	help
+	  Say 'Y' here to enable compliation of the Motorola Z3 Play DTB.

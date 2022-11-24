@@ -1,0 +1,115 @@
+/* Copyright (c) 2017, Motorola Mobility Inc. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+&tlmm {
+	/delete-node/ muc_bplus_ilim@0;
+	/delete-node/ apba_sflash_en;
+	/delete-node/ apba_wake;
+	/delete-node/ eb_vbus_conf;
+	/delete-node/ kungpow_default;
+	/delete-node/ eb_vbus_active;
+
+	anx_cbl_det_active {
+		mux {
+			pins = "gpio44";
+		};
+		config {
+			pins = "gpio44";
+		};
+	};
+	anx_irq_active {
+		mux {
+			pins = "gpio45";
+		};
+		config {
+			pins = "gpio45";
+		};
+	};
+	muc_spi_ctrl: muc_spi_ctrl@0 {
+		mux {
+			pins = "gpio42", "gpio48";
+		};
+		config {
+			pins = "gpio42", "gpio48";
+		};
+	};
+
+	apba_default@0 {
+		/delete-node/ apba_bootret;
+		/delete-node/ apba_wake;
+		/delete-node/ apba_sflash_en;
+		/delete-node/ apba_reset_n;
+	};
+
+	muc_attach@0 {
+		mux {
+			pins = "gpio43";
+		};
+		config {
+			pins = "gpio43";
+		};
+	};
+
+	nfc {
+		nfc_int_active: nfc_int_active {
+			mux {
+				pins = "gpio40";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio40";
+				drive-strength = <2>; /* 2 MA */
+				bias-pull-up;
+			};
+		};
+
+		nfc_int_suspend: nfc_int_suspend {
+			mux {
+				pins = "gpio40";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio40";
+				drive-strength = <2>; /* 2 MA */
+				bias-pull-up;
+			};
+		};
+
+		nfc_enable_active: nfc_enable_active {
+			mux {
+				pins = "gpio35";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio35";
+				drive-strength = <2>; /* 2 MA */
+				bias-pull-up;
+			};
+		};
+
+		nfc_enable_suspend: nfc_enable_suspend {
+			mux {
+				pins = "gpio35";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio35";
+				drive-strength = <2>; /* 2 MA */
+				bias-disable;
+			};
+		};
+	};
+};

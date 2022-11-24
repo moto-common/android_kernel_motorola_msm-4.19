@@ -322,6 +322,10 @@ sdm660-internal-codec-cdp.dtb \
         sdm636-pm660a-rcm.dtb \
         sdm636-usbc-audio-mtp.dtb \
         sdm636-usbc-audio-rcm.dtb
+
+ifeq ($(CONFIG_MOTOROLA_DTB),y)
+dtb-$(CONFIG_MOTOROLA_BECKHAM_DTB) += motorola/beckham/sdm636-beckham.dtb
+endif
 endif
 
 ifeq ($(CONFIG_BUILD_ARM64_DT_OVERLAY),y)
