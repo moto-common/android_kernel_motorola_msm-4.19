@@ -402,6 +402,7 @@
 
 &i2c_4 {
 	status = "okay";
+	qcom,disable-dma;
 	synaptics_dsx_i2c@20 {
 		compatible = "synaptics,synaptics_dsx_i2c";
 		reg = <0x20>;
