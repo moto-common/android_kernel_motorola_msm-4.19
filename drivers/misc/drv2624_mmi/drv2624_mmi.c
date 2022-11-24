@@ -44,8 +44,11 @@
 #include <linux/of.h>
 #include <linux/of_gpio.h>
 #include <linux/drv2624_mmi.h>
+#include <linux/pm_wakeup.h>
+#include <linux/mmi_wake_lock.h>
 
 static struct drv2624_data *g_DRV2624data;
+static struct wakeup_source *vib_wake_lock;
 
 static int
 drv2624_reg_read(struct drv2624_data *ctrl, unsigned char reg)
@@ -232,7 +235,7 @@ static void drv2624_stop(struct drv2624_data *ctrl)
 		hrtimer_cancel(&ctrl->timer);
 		drv2624_set_go_bit(ctrl, STOP);
 		ctrl->mnVibratorPlaying = NO;
-		wake_unlock(&ctrl->wklock);
+		PM_RELAX(vib_wake_lock);
 	}
 }
 
@@ -281,7 +284,7 @@ static ssize_t drv2624_store_duration(struct device *dev,
 	drv2624_stop(ctrl);
 
 	if (value > 0) {
-		wake_lock(&ctrl->wklock);
+		PM_STAY_AWAKE(vib_wake_lock);
 
 		drv2624_change_mode(ctrl, MODE_RTP);
 		ctrl->mnVibratorPlaying = YES;
@@ -435,7 +438,7 @@ static void vibrator_work_routine(struct work_struct *work)
 
 			if (ctrl->mnVibratorPlaying == YES) {
 				ctrl->mnVibratorPlaying = NO;
-				wake_unlock(&ctrl->wklock);
+				PM_RELAX(vib_wake_lock);
 			}
 		}
 
@@ -721,7 +724,7 @@ drv2624_file_unlocked_ioctl(struct file *file, unsigned int cmd,
 		{
 			drv2624_stop(ctrl);
 
-			wake_lock(&ctrl->wklock);
+			PM_STAY_AWAKE(vib_wake_lock);
 			ctrl->mnVibratorPlaying = YES;
 			drv2624_change_mode(ctrl,
 					    MODE_WAVEFORM_SEQUENCER);
@@ -739,7 +742,7 @@ drv2624_file_unlocked_ioctl(struct file *file, unsigned int cmd,
 		{
 			drv2624_stop(ctrl);
 
-			wake_lock(&ctrl->wklock);
+			PM_STAY_AWAKE(vib_wake_lock);
 			ctrl->mnVibratorPlaying = YES;
 			drv2624_change_mode(ctrl, MODE_DIAGNOSTIC);
 			drv2624_set_go_bit(ctrl, GO);
@@ -754,7 +757,7 @@ drv2624_file_unlocked_ioctl(struct file *file, unsigned int cmd,
 		{
 			drv2624_stop(ctrl);
 
-			wake_lock(&ctrl->wklock);
+			PM_STAY_AWAKE(vib_wake_lock);
 			ctrl->mnVibratorPlaying = YES;
 			drv2624_change_mode(ctrl, MODE_CALIBRATION);
 			drv2624_set_go_bit(ctrl, GO);
@@ -956,7 +959,7 @@ drv2624_file_write(struct file *filp, const char *buff, size_t len,
 			if (fw_buffer != NULL) {
 				fw.size = len - 1;
 
-				wake_lock(&ctrl->wklock);
+				PM_STAY_AWAKE(vib_wake_lock);
 				result =
 				    copy_from_user(fw_buffer, &buff[1],
 						   fw.size);
@@ -970,7 +973,7 @@ drv2624_file_write(struct file *filp, const char *buff, size_t len,
 					drv2624_firmware_load(&fw, (void *)
 							      ctrl);
 				}
-				wake_unlock(&ctrl->wklock);
+				PM_RELAX(vib_wake_lock);
 
 				kfree(fw_buffer);
 			}
@@ -1052,7 +1055,7 @@ static int Haptics_init(struct drv2624_data *ctrl)
 	ctrl->timer.function = vibrator_timer_func;
 	INIT_WORK(&ctrl->vibrator_work, vibrator_work_routine);
 
-	wake_lock_init(&ctrl->wklock, WAKE_LOCK_SUSPEND, "vibrator");
+        PM_WAKEUP_REGISTER(ctrl->dev, vib_wake_lock, "vibrator");
 	mutex_init(&ctrl->lock);
 
 	return 0;
@@ -1189,7 +1192,7 @@ static irqreturn_t drv2624_irq_handler(int irq, void *dev_id)
 
 static int dev_auto_calibrate(struct drv2624_data *ctrl)
 {
-	wake_lock(&ctrl->wklock);
+	PM_STAY_AWAKE(vib_wake_lock);
 	ctrl->mnVibratorPlaying = YES;
 	drv2624_change_mode(ctrl, MODE_CALIBRATION);
 	drv2624_set_go_bit(ctrl, GO);
@@ -1611,7 +1614,7 @@ static int drv2624_remove(struct i2c_client *client)
 	devm_free_irq(ctrl->dev, client->irq, ctrl);
 	cancel_work_sync(&ctrl->vibrator_work);
 	drv2624_class_vibrator(ctrl, false);
-	wake_lock_destroy(&ctrl->wklock);
+	PM_WAKEUP_UNREGISTER(vib_wake_lock);
 	misc_deregister(&drv2624_misc);
 	for (i = 0; i < ARRAY_SIZE(drv2624_led_classdev_attrs); i++)
 		sysfs_remove_file(&ctrl->cdev.dev->kobj,
@@ -1621,17 +1624,29 @@ static int drv2624_remove(struct i2c_client *client)
 	return 0;
 }
 
+static const struct of_device_id drv2624_of_match[] = {
+	{.compatible = "ti,drv2624"},
+	{},
+};
+
+MODULE_DEVICE_TABLE(of, drv2624_of_match);
+
+#if defined(CONFIG_OF)
 static struct i2c_device_id drv2624_id_table[] = {
 	{HAPTICS_DEVICE_NAME, 0},
 	{}
 };
 
 MODULE_DEVICE_TABLE(i2c, drv2624_id_table);
+#endif
 
 static struct i2c_driver drv2624_driver = {
 	.driver = {
 		   .name = HAPTICS_DEVICE_NAME,
 		   .owner = THIS_MODULE,
+#if defined(CONFIG_OF)
+		   .of_match_table = of_match_ptr(drv2624_of_match),
+#endif
 		   },
 	.id_table = drv2624_id_table,
 	.probe = drv2624_probe,

@@ -27,7 +27,6 @@
 #include <linux/timer.h>
 #include <linux/workqueue.h>
 #include <linux/hrtimer.h>
-#include <linux/wakelock.h>
 #include <linux/mutex.h>
 #include <linux/cdev.h>
 #include <linux/i2c.h>
@@ -277,7 +276,6 @@ struct drv2624_data {
 
 	atomic_t reduce_pwr;
 
-	struct wake_lock wklock;
 	struct hrtimer timer;
 	struct mutex lock;
 	struct work_struct vibrator_work;
