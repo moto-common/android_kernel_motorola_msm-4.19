@@ -4385,8 +4385,6 @@ static int synaptics_rmi4_f12_abs_report(struct synaptics_rmi4_data *rmi4_data,
 
 	if (unlikely(print_xy == -1)) {
 		print_xy = 0;
-		if (strncmp(bi_bootmode(), "mot-factory", strlen("mot-factory")) == 0)
-			print_xy = 1;
 	}
 
 	if (atomic_read(&rmi4_data->panel_off_flag))

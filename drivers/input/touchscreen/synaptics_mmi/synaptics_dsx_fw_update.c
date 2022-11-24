@@ -4253,16 +4253,6 @@ static int synaptics_rmi4_fwu_init(struct synaptics_rmi4_data *rmi4_data)
 		}
 	}
 
-	if (strncmp(bi_bootmode(), "mot-factory", strlen("mot-factory")) == 0) {
-		retval = sysfs_create_file(SYSFS_KOBJ, &erase_attr[0].attr);
-		if (retval < 0) {
-			dev_err(LOGDEV,
-					"%s: Failed to create erase sysfs attributes\n",
-					__func__);
-		} else
-			fwu->has_erase_all = true;
-	}
-
 	rmi4_data->fwu_data = (void *)fwu;
 
 	return 0;
