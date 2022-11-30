@@ -6,6 +6,7 @@
 #include "pinctrl.dtsi"
 #include "audio.dtsi"
 #include "../moto-fps.dtsi"
+#include "camera.dtsi"
 #include "dsi-panel-mot-smd-601-1080p-cmd.dtsi"
 #include "dsi-panel-mot-tianma-601-1080p-cmd.dtsi"
 #include "../carrier-channel-ids.dtsi"
