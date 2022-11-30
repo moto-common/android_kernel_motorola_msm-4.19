@@ -250,6 +250,10 @@
 		/delete-property/ pinctrl-0;
 		/delete-property/ pinctrl-1;
 	};
+
+	qcom,msm_fastrpc {
+		/delete-property/ qcom,fastrpc-adsp-sensors-pdr;
+	};
 };
 
 &pm660_vadc {
