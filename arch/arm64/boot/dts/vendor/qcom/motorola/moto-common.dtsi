@@ -1,0 +1,238 @@
+#include "moto-pinctrl.dtsi"
+#include "moto-fps.dtsi"
+#include "carrier-channel-ids.dtsi"
+#include "moto-mem-reserve.h"
+
+/ {
+	utags {
+		compatible = "mmi,utags";
+		mmi,main-utags = "/dev/block/bootdevice/by-name/utags";
+		mmi,backup-utags = "/dev/block/bootdevice/by-name/utagsBackup";
+	};
+
+	hw {
+		compatible = "mmi,utags";
+		mmi,dir-name = "hw";
+		mmi,main-utags = "/dev/block/bootdevice/by-name/hw";
+	};
+
+	reserved-memory {
+		ramoops {
+			compatible = "removed-dma-pool", "ramoops";
+			no-map;
+			status = "ok";
+			reg = <0x0 0xaf000000 0x0 0xC0000>;
+			console-size = <RAMOOPS_CONSOLE_SIZE>;
+		};
+	};
+
+	/delete-node/ firmware;
+	firmware: firmware {
+		android {
+			compatible = "android,firmware";
+
+			vbmeta {
+				 compatible = "android,vbmeta";
+				  parts = "vbmeta,boot,system,vendor";
+			};
+
+			fstab {
+				compatible = "android,fstab";
+				vendor {
+					compatible = "android,vendor";
+					dev = "/dev/block/platform/soc/c0c4000.sdhci/by-name/vendor";
+					type = "ext4";
+					mnt_flags = "ro,barrier=1,discard";
+					fsmgr_flags = "wait,slotselect";
+					status = "ok";
+				};
+			};
+		};
+	};
+};
+
+&soc {
+	// Removed unused QCOM fingerprint sensor
+	/delete-node/ qcom,qbt1000;
+
+	// Sensors
+	qcom,msm-ssc-sensors {
+		compatible = "qcom,msm-ssc-sensors";
+	};
+
+	qcom,sensor-information {
+		sensor_information22: qcom,sensor-information-22 {
+			qcom,sensor-type =  "adc";
+			qcom,sensor-name = "chg_therm";
+		};
+		sensor_information23: qcom,sensor-information-23 {
+			qcom,sensor-type =  "adc";
+			qcom,sensor-name = "pcm_therm";
+			qcom,scaling-factor = <1000>;
+		};
+		sensor_information24: qcom,sensor-information-24 {
+			qcom,sensor-type = "adc";
+			qcom,sensor-name = "battery";
+			qcom,alias-name  = "batt_therm";
+			qcom,scaling-factor = <1000>;
+		};
+	};
+
+	rradc_typec_temp: typec-temp-sensor {
+		compatible = "generic-adc-thermal";
+		#thermal-sensor-cells = <0>;
+		io-channels = <&pm660_rradc 2>;
+		io-channel-names = "sensor-channel";
+	};
+
+	thermal-zones {
+		pcm_therm {
+			polling-delay = <100>; /* milliseconds */
+			polling-delay-passive = <100>; /* milliseconds */
+			thermal-sensors = <&rradc_typec_temp>;
+		};
+	};
+};
+
+// Charging LED
+&pm660l_rgb_led {
+	/delete-node/ green;
+	/delete-node/ blue;
+	red {
+		label = "charging";
+	};
+};
+
+// Misc
+&mem_client_3_size {
+	qcom,peripheral-size = <0x500000>;
+};
+
+// Sensors
+&pm660_vadc {
+	chan@4e {
+		label = "chg_therm";
+		reg = <0x4e>;
+		qcom,decimation = <2>;
+		qcom,pre-div-channel-scaling = <0>;
+		qcom,calibration-type = "ratiometric";
+		qcom,scale-function = <2>;
+		qcom,hw-settle-time = <2>;
+		qcom,fast-avg-setup = <0>;
+	};
+};
+
+&pm660_adc_tm {
+	chan@4e {
+		label = "chg_therm";
+		reg = <0x4e>;
+		qcom,pre-div-channel-scaling = <0>;
+		qcom,calibration-type = "ratiometric";
+		qcom,scale-function = <2>;
+		qcom,hw-settle-time = <2>;
+		qcom,btm-channel-number = <0x70>;
+		qcom,thermal-node;
+	};
+};
+
+// Charging/USB
+&spmi_bus {
+	qcom,pm660l@2 {
+		qcom,power-on@800 {
+			qcom,shipmode;
+		};
+	};
+};
+
+&pm660_fg {
+	qcom,battery-data = <&mot_batterydata>;
+	qcom,fg-force-load-profile = <1>;
+	qcom,fg-cutoff-voltage = <3200>;
+	qcom,fg-empty-voltage = <3000>;
+	qcom,fg-chg-term-current = <100>;
+	qcom,fg-delta-soc-thr = <1>;
+	qcom,fg-jeita-thresholds = <(-20)>, <0>, <45>, <60>;
+	qcom,cl-start-capacity = <5>;
+	qcom,cl-min-temp = <150>;
+	qcom,cl-max-temp = <450>;
+	qcom,cl-max-increment = <5>;
+	qcom,cl-max-decrement = <10>;
+	qcom,cl-min-limit = <200>;
+	qcom,cl-max-limit = <30>;
+};
+
+&pm660_charger {
+	qcom,fcc-max-ua = <3000000>;
+	qcom,fv-max-uv = <4400000>;
+	qcom,usb-icl-ua = <3000000>;
+	qcom,thermal-mitigation = <3000>,
+				   <2500>,
+				   <1500>,
+				   <900>,
+				   <600>,
+				   <300>;
+	qcom,enable-charging-limit;
+	qcom,upper-limit-capacity = <75>;
+	qcom,lower-limit-capacity = <60>;
+	qcom,hvdcp-force-5v;
+	qcom,typec-debounce;
+	qcom,usbpd-phandle = <&pm660_pdphy>;
+	qcom,source-current-ma = <900>;
+};
+
+&pm660_pdphy {
+	qcom,default-sink-caps = <5000 3000>; /* 5V @ 3A */
+	qcom,source-current = <900>;
+};
+
+// EMMC
+&sdhc_1 {
+	/* device core power supply */
+	vdd-supply = <&pm660l_l4>;
+	qcom,vdd-voltage-level = <2950000 2950000>;
+	qcom,vdd-current-level = <200 570000>;
+
+	/* device communication power supply */
+	vdd-io-supply = <&pm660_l8>;
+	qcom,vdd-io-always-on;
+	qcom,vdd-io-lpm-sup;
+	qcom,vdd-io-voltage-level = <1800000 1800000>;
+	qcom,vdd-io-current-level = <110 325000>;
+
+	pinctrl-names = "active", "sleep";
+	pinctrl-0 = <&sdc1_clk_on &sdc1_cmd_on &sdc1_data_on &sdc1_rclk_on>;
+	pinctrl-1 = <&sdc1_clk_off &sdc1_cmd_off &sdc1_data_off &sdc1_rclk_off>;
+
+	status = "ok";
+};
+
+// SDCard
+&sdhc_2 {
+	/* device core power supply */
+	vdd-supply = <&pm660l_l5>;
+	qcom,vdd-voltage-level = <2950000 2950000>;
+	qcom,vdd-current-level = <15000 800000>;
+
+	/* device communication power supply */
+	vdd-io-supply = <&pm660l_l2>;
+	qcom,vdd-io-voltage-level = <1800000 2950000>;
+	qcom,vdd-io-current-level = <200 22000>;
+
+	pinctrl-names = "active", "sleep";
+	pinctrl-0 = <&sdc2_clk_on &sdc2_cmd_on &sdc2_data_on &sdc2_cd_on>;
+	pinctrl-1 = <&sdc2_clk_off &sdc2_cmd_off &sdc2_data_off &sdc2_cd_off>;
+
+	#address-cells = <0>;
+	interrupt-parent = <&sdhc_2>;
+	interrupts = <0 1 2>;
+	#interrupt-cells = <1>;
+	interrupt-map-mask = <0xffffffff>;
+	interrupt-map = <0 &intc 0 0 125 0
+			1 &intc 0 0 221 0
+			2 &tlmm 54 0>;
+	interrupt-names = "hc_irq", "pwr_irq", "status_irq";
+	cd-gpios = <&tlmm 54 0x0>;
+	qcom,cd-wakeup;
+
+	status = "ok";
+};

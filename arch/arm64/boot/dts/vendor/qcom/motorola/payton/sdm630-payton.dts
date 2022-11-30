@@ -1,0 +1,101 @@
+/dts-v1/;
+
+// Include required dtsi
+#include "../../sdm630.dtsi"
+#include "../moto-common.dtsi"
+#include "dsi-panel-mot-tianma-520-1080p-vid.dtsi"
+#include "dsi-panel-mot-boe-520-1080p-vid.dtsi"
+
+/ {
+	model = "Payton";
+	compatible = "qcom,sdm630-payton", "qcom,sdm630-moto",
+			"qcom,sdm630";
+	qcom,board-id = <0x42 0x82B0>;
+	// Battery
+	mot_batterydata: qcom,battery-data {
+		qcom,batt-id-range-pct = <15>;
+		df-serialnum = "SNN5995";
+
+		#include "fg-gen3-batterydata-hx40sunwoda-3000mah.dtsi"
+		#include "fg-gen3-batterydata-hx40scud-3000mah.dtsi"
+	};
+};
+
+// Vibrator
+&pm660_haptics {
+	qcom,actuator-type = "erm";
+	qcom,vmax-mv = <2750>;
+};
+
+&soc {
+    // Protected GPIOs
+	qcom,tz_gpio {
+		compatible = "qcom,tz_gpio";
+		tlmm-tz = <0>,
+			<1>,
+			<2>,
+			<3>;
+	};
+    
+	ssphy: ssphy@c010000 {
+		status = "disabled";
+	};
+
+	usb_nop_phy: usb_nop_phy {
+		compatible = "usb-nop-xceiv";
+	};
+};
+
+// Charger
+&pm660_fg {
+	qcom,fg-sys-term-current = <(-200)>;
+};
+
+&pm660_charger {
+	qcom,mmi-temp-zones = <0 4200 562 0>,
+				<10 0 562 562>,
+				<15 0 1124 1124>,
+				<45 4200 3000 2000>,
+				<60 4200 2000 0>;
+};
+
+&pm660_pdphy {
+	qcom,default-sink-caps = <5000 3000>; /* 5V @ 3A */
+};
+
+// USB
+&usb3 {
+	dwc3@a800000 {
+		usb-phy = <&qusb_phy0>, <&usb_nop_phy>;
+		maximum-speed = "high-speed";
+	};
+};
+
+// Display configuration
+&mdss_mdp {
+	qcom,mdss-pref-prim-intf = "dsi";
+};
+
+&mdss_dsi {
+	hw-config = "single_dsi";
+};
+
+&mdss_dsi0 {
+	qcom,dsi-pref-prim-pan = <&mot_tianma_520_1080p_vid_v0>;
+	pinctrl-names = "mdss_default", "mdss_sleep";
+	pinctrl-0 = <&mdss_dsi_active &mdss_te_active>;
+	pinctrl-1 = <&mdss_dsi_suspend &mdss_te_suspend>;
+	qcom,platform-reset-gpio = <&tlmm 53 0>;
+	qcom,platform-te-gpio = <&tlmm 59 0>;
+};
+
+&pm660l_wled {
+	qcom,ovp = <18100>;
+	qcom,string-cfg = [00 01 02];
+	qcom,en-cabc;
+	/delete-property/ qcom,auto-calibration;
+};
+
+&mdss_dp_ctrl{
+	status = "disabled";
+};

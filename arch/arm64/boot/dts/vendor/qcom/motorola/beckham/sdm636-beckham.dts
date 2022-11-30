@@ -1,77 +1,31 @@
 /dts-v1/;
 
+// Include required dtsi
 #include "../../sdm636.dtsi"
 #include "../../msm-pm660a.dtsi"
-#include "../moto-pinctrl.dtsi"
+#include "../moto-common.dtsi"
 #include "pinctrl.dtsi"
 #include "audio.dtsi"
-#include "../moto-fps.dtsi"
 #include "camera.dtsi"
 #include "dsi-panel-mot-smd-601-1080p-cmd.dtsi"
 #include "dsi-panel-mot-tianma-601-1080p-cmd.dtsi"
-#include "../carrier-channel-ids.dtsi"
-#include "../moto-mem-reserve.h"
 
 / {
-        model = "beckham";
-        compatible = "qcom,sdm636-beckham", "qcom,sdm636-moto",
-                        "qcom,sdm636";
+	model = "beckham";
+	compatible = "qcom,sdm636-beckham", "qcom,sdm636-moto",
+                    "qcom,sdm636";
 	qcom,board-id = <0x4A 0xC000>;
 
-	utags {
-		compatible = "mmi,utags";
-		mmi,main-utags = "/dev/block/bootdevice/by-name/utags";
-		mmi,backup-utags = "/dev/block/bootdevice/by-name/utagsBackup";
-	};
-
-	hw {
-		compatible = "mmi,utags";
-		mmi,dir-name = "hw";
-		mmi,main-utags = "/dev/block/bootdevice/by-name/hw";
-	};
-
+	// Battery
 	mot_batterydata: qcom,battery-data {
 		qcom,batt-id-range-pct = <15>;
 		df-serialnum = "SB18C20118";
 		#include "batterydata-js40-scud-pm660.dtsi"
 		#include "batterydata-js40-swd-pm660.dtsi"
 	};
-
-	reserved-memory {
-		ramoops {
-			compatible = "removed-dma-pool", "ramoops";
-			no-map;
-			status = "ok";
-			reg = <0x0 0xaf000000 0x0 0xC0000>;
-			console-size = <RAMOOPS_CONSOLE_SIZE>;
-		};
-	};
-
-	/delete-node/ firmware;
-	firmware: firmware {
-		android {
-			compatible = "android,firmware";
-
-			vbmeta {
-				 compatible = "android,vbmeta";
-				  parts = "vbmeta,boot,system,vendor";
-			};
-
-			fstab {
-				compatible = "android,fstab";
-				vendor {
-					compatible = "android,vendor";
-					dev = "/dev/block/platform/soc/c0c4000.sdhci/by-name/vendor";
-					type = "ext4";
-					mnt_flags = "ro,barrier=1,discard";
-					fsmgr_flags = "wait,slotselect";
-					status = "ok";
-				};
-			};
-		};
-	};
 };
 
+// TEMP single display until mods are up
 &mdss_mdp {
 	qcom,mdss-pref-prim-intf = "dsi";
 };
@@ -80,6 +34,11 @@
 	hw-config = "single_dsi";
 };
 
+&mdss_dsi1 {
+	status = "disabled";
+};
+
+// Display configuration
 &mdss_dsi0 {
 	pinctrl-names = "mdss_default", "mdss_sleep";
 	pinctrl-0 = <&mdss_dsi_active &mdss_te_active &mipi_err_pin_active>;
@@ -95,10 +54,11 @@
 	qcom,platform-te-gpio = <&tlmm 59 0>;
 };
 
-&mdss_dsi1 {
-	status = "disabled";
+&pm660l_wled {
+	en-sdm660l-ovp-disable;
 };
 
+// Display pinctrl
 &pmx_mdss {
 	mipi_err_pin_active: mipi_err_pin_active {
 		mux {
@@ -129,70 +89,60 @@
 	};
 };
 
-&pm660l_wled {
-	en-sdm660l-ovp-disable;
+&pm660_l11 {
+	regulator-min-microvolt = <1850000>;
+	regulator-max-microvolt = <1850000>;
+	qcom,init-voltage = <1850000>;
+	regulator-boot-on;
 };
 
-&sdhc_1 {
-	/* device core power supply */
-	vdd-supply = <&pm660l_l4>;
-	qcom,vdd-voltage-level = <2950000 2950000>;
-	qcom,vdd-current-level = <200 570000>;
-
-	/* device communication power supply */
-	vdd-io-supply = <&pm660_l8>;
-	qcom,vdd-io-always-on;
-	qcom,vdd-io-lpm-sup;
-	qcom,vdd-io-voltage-level = <1800000 1800000>;
-	qcom,vdd-io-current-level = <200 325000>;
-
-	pinctrl-names = "active", "sleep";
-	pinctrl-0 = <&sdc1_clk_on &sdc1_cmd_on &sdc1_data_on &sdc1_rclk_on>;
-	pinctrl-1 = <&sdc1_clk_off &sdc1_cmd_off &sdc1_data_off &sdc1_rclk_off>;
-
-	qcom,clk-rates = <400000 20000000 25000000 50000000 100000000 192000000
-								384000000>;
-
-	qcom,nonremovable;
-	qcom,bus-speed-mode = "HS400_1p8v", "HS200_1p8v", "DDR_1p8v";
-
-	status = "ok";
+&pm660l_l6 {
+	regulator-min-microvolt = <3000000>;
+	regulator-max-microvolt = <3000000>;
+	qcom,init-voltage = <3000000>;
+	regulator-boot-on;
 };
 
-&sdhc_2 {
-	/* device core power supply */
-	vdd-supply = <&pm660l_l5>;
-	qcom,vdd-voltage-level = <2950000 2950000>;
-	qcom,vdd-current-level = <15000 800000>;
+&pm660a_oledb {
+	qcom,oledb-default-voltage-mv = <7600>;
+};
 
-	/* device communication power supply */
-	vdd-io-supply = <&pm660l_l2>;
-	qcom,vdd-io-voltage-level = <1800000 2950000>;
-	qcom,vdd-io-current-level = <200 22000>;
+&mot_smd_601_1080p_cmd_v0 {
+	qcom,bklt-dcs-2bytes-enabled;
+	qcom,mdss-dsi-bl-min-level = <3>;
+	qcom,mdss-dsi-bl-max-level = <1023>;
 
-	pinctrl-names = "active", "sleep";
-	pinctrl-0 = <&sdc2_clk_on &sdc2_cmd_on &sdc2_data_on &sdc2_cd_on>;
-	pinctrl-1 = <&sdc2_clk_off &sdc2_cmd_off &sdc2_data_off &sdc2_cd_off>;
+	qcom,panel-supply-entries {
+			qcom,panel-supply-entry@4 {
+				reg = <4>;
+				qcom,supply-name = "oled_disp";
+				qcom,supply-min-voltage = <5000000>;
+				qcom,supply-max-voltage = <8100000>;
+				qcom,supply-enable-load = <100000>;
+				qcom,supply-disable-load = <100>;
+			};
+	};
+};
 
-	#address-cells = <0>;
-	interrupt-parent = <&sdhc_2>;
-	interrupts = <0 1 2>;
-	#interrupt-cells = <1>;
-	interrupt-map-mask = <0xffffffff>;
-	interrupt-map = <0 &intc 0 0 125 0
-			1 &intc 0 0 221 0
-			2 &tlmm 54 0>;
-	interrupt-names = "hc_irq", "pwr_irq", "status_irq";
-	cd-gpios = <&tlmm 54 0x1>;
+&mot_tianma_601_1080p_cmd_v0 {
+	qcom,bklt-dcs-2bytes-enabled;
+	qcom,mdss-dsi-bl-min-level = <3>;
+	qcom,mdss-dsi-bl-max-level = <1023>;
 
-	qcom,clk-rates = <400000 20000000 25000000 50000000 100000000
-								200000000>;
-	qcom,bus-speed-mode = "SDR12", "SDR25", "SDR50", "DDR50", "SDR104";
-
-	status = "ok";
+	qcom,panel-supply-entries {
+			qcom,panel-supply-entry@4 {
+				reg = <4>;
+				qcom,supply-name = "oled_disp";
+				qcom,supply-min-voltage = <5000000>;
+				qcom,supply-max-voltage = <8100000>;
+				qcom,supply-enable-load = <100000>;
+				qcom,supply-disable-load = <100>;
+			};
+	};
 };
 
 &soc {
+	// USB
 	vdd_otg_vreg: vdd_otg_vreg {
 		compatible = "regulator-fixed";
 		regulator-name = "vdd_otg";
@@ -201,43 +151,7 @@
 		enable-active-high;
 	};
 
-	qcom,msm-ssc-sensors {
-		compatible = "qcom,msm-ssc-sensors";
-	};
-
-	qcom,sensor-information {
-		sensor_information22: qcom,sensor-information-22 {
-			qcom,sensor-type =  "adc";
-			qcom,sensor-name = "chg_therm";
-		};
-		sensor_information23: qcom,sensor-information-23 {
-			qcom,sensor-type =  "adc";
-			qcom,sensor-name = "pcm_therm";
-			qcom,scaling-factor = <1000>;
-		};
-		sensor_information24: qcom,sensor-information-24 {
-			qcom,sensor-type = "adc";
-			qcom,sensor-name = "battery";
-			qcom,alias-name  = "batt_therm";
-			qcom,scaling-factor = <1000>;
-		};
-	};
-
-	rradc_typec_temp: typec-temp-sensor {
-		compatible = "generic-adc-thermal";
-		#thermal-sensor-cells = <0>;
-		io-channels = <&pm660_rradc 2>;
-		io-channel-names = "sensor-channel";
-	};
-
-	thermal-zones {
-		pcm_therm {
-			polling-delay = <100>; /* milliseconds */
-			polling-delay-passive = <100>; /* milliseconds */
-			thermal-sensors = <&rradc_typec_temp>;
-		};
-	};
-
+	// Protected GPIOs
 	qcom,tz_gpio {
 		compatible = "qcom,tz_gpio";
 		tlmm-tz = <8>,
@@ -246,72 +160,27 @@
 			<11>;
 	};
 
+	// Remove GPIO pinctrl
 	gpio_keys {
 		/delete-property/ pinctrl-names;
 		/delete-property/ pinctrl-0;
 		/delete-property/ pinctrl-1;
 	};
 
+	// SDM636 does not have a SEE, sensors are placed in adsp instead
 	qcom,msm_fastrpc {
 		/delete-property/ qcom,fastrpc-adsp-sensors-pdr;
 	};
 };
 
-&pm660_vadc {
-	chan@4e {
-		label = "chg_therm";
-		reg = <0x4e>;
-		qcom,decimation = <2>;
-		qcom,pre-div-channel-scaling = <0>;
-		qcom,calibration-type = "ratiometric";
-		qcom,scale-function = <2>;
-		qcom,hw-settle-time = <2>;
-		qcom,fast-avg-setup = <0>;
-	};
-};
-
-&pm660_adc_tm {
-	chan@4e {
-		label = "chg_therm";
-		reg = <0x4e>;
-		qcom,pre-div-channel-scaling = <0>;
-		qcom,calibration-type = "ratiometric";
-		qcom,scale-function = <2>;
-		qcom,hw-settle-time = <2>;
-		qcom,btm-channel-number = <0x70>;
-		qcom,thermal-node;
-	};
-};
-
+// Charger/USB
 &pm660_charger {
-	gpios = <&pm660l_gpios 8 0x0>; /* GPIOF_OUT_INIT_LOW */
-	gpio-names = "eb_vbus_en";
-	qcom,use-single-path-usbin-switch;
-};
-
-&pm660_pdphy {
-	vbus-supply = <&vdd_otg_vreg>;
-	qcom,source-current = <900>;
-	qcom,default-sink-caps = <5000 3000>, /* 5V @ 3A */
-				<9000 2000>; /* 9V @ 2A */
-};
-
-&pm660_charger {
-	qcom,fcc-max-ua = <3000000>;
-	qcom,fv-max-uv = <4400000>;
-	qcom,usb-icl-ua = <3000000>;
 	qcom,dc-icl-ua = <3000000>;
 	qcom,eb-batt-psy-name = "gb_battery";
 	qcom,eb-pwr-psy-name = "gb_ptp";
 	qcom,dc-eb-icl-ma = <900>;
 	qcom,dc-eb-icl-eff-ma = <500>;
 	qcom,iterm-ma = <146>;
-	qcom,thermal-mitigation = <3000>,
-				   <2500>,
-				   <1500>,
-				   <900>,
-				   <600>,
-				   <300>;
 	qcom,dc-thermal-mitigation = <3000>,
 				     <1500>,
 				     <900>,
@@ -322,36 +191,26 @@
 				<15 0 1455 1455>,
 				<45 4200 3000 2000>,
 				<60 4200 1455 0>;
-	qcom,enable-charging-limit;
-	qcom,upper-limit-capacity = <75>;
-	qcom,lower-limit-capacity = <60>;
 	qcom,vfloat-comp-uv = <20000>;
-	qcom,usbpd-phandle = <&pm660_pdphy>;
-	qcom,source-current-ma = <900>;
 	qcom,typec-debounce;
 	qcom,external-vconn;
 	qcom,external-vbus;
+	qcom,use-single-path-usbin-switch;
+	gpios = <&pm660l_gpios 8 0x0>; /* GPIOF_OUT_INIT_LOW */
+	gpio-names = "eb_vbus_en";
 	smb2_ext_vbus: qcom,smb2-ext-vbus {
 		regulator-name = "smb2-ext-vbus";
 	};
 };
 
+&pm660_pdphy {
+	vbus-supply = <&vdd_otg_vreg>;
+	qcom,default-sink-caps = <5000 3000>, /* 5V @ 3A */
+				<9000 2000>; /* 9V @ 2A */
+};
+
 &pm660_fg {
-	qcom,battery-data = <&mot_batterydata>;
-	qcom,fg-force-load-profile = <1>;
-	qcom,fg-cutoff-voltage = <3200>;
-	qcom,fg-empty-voltage = <3000>;
-	qcom,fg-chg-term-current = <100>;
 	qcom,fg-sys-term-current = <(-273)>;
-	qcom,fg-delta-soc-thr = <1>;
-	qcom,fg-jeita-thresholds = <(-20)>, <0>, <45>, <60>;
-	qcom,cl-start-capacity = <5>;
-	qcom,cl-min-temp = <150>;
-	qcom,cl-max-temp = <450>;
-	qcom,cl-max-increment = <5>;
-	qcom,cl-max-decrement = <10>;
-	qcom,cl-min-limit = <200>;
-	qcom,cl-max-limit = <30>;
 };
 
 &rpm_bus {
@@ -377,6 +236,22 @@
 	qcom,ssusb-compliance;
 };
 
+&qusb_phy0 {
+	qcom,tune2-efuse-correction = <(-7)>;
+	qcom,tune2-efuse-correction-host = <(-5)>;
+	qcom,qusb-phy-init-seq = <0xf8 0x80
+				0x53 0x84
+				0x81 0x88
+				0xcf 0x8c
+				0x30 0x08
+				0x79 0x0c
+				0x21 0x10
+				0x14 0x9c
+				0x9f 0x1c
+				0x00 0x18>;
+};
+
+// Peripherials
 &i2c_2 {
 	status = "ok";
 
@@ -471,85 +346,10 @@
 	};
 };
 
-&qusb_phy0 {
-	qcom,tune2-efuse-correction = <(-7)>;
-	qcom,tune2-efuse-correction-host = <(-5)>;
-	qcom,qusb-phy-init-seq = <0xf8 0x80
-				0x53 0x84
-				0x81 0x88
-				0xcf 0x8c
-				0x30 0x08
-				0x79 0x0c
-				0x21 0x10
-				0x14 0x9c
-				0x9f 0x1c
-				0x00 0x18>;
-};
-
-&pm660_l11 {
-	regulator-min-microvolt = <1850000>;
-	regulator-max-microvolt = <1850000>;
-	qcom,init-voltage = <1850000>;
-	regulator-boot-on;
-};
-
-&pm660l_l6 {
-	regulator-min-microvolt = <3000000>;
-	regulator-max-microvolt = <3000000>;
-	qcom,init-voltage = <3000000>;
-	regulator-boot-on;
-};
-
-&pm660a_oledb {
-	qcom,oledb-default-voltage-mv = <7600>;
-};
-
-&mot_smd_601_1080p_cmd_v0 {
-	qcom,bklt-dcs-2bytes-enabled;
-	qcom,mdss-dsi-bl-min-level = <3>;
-	qcom,mdss-dsi-bl-max-level = <1023>;
-
-	qcom,panel-supply-entries {
-			qcom,panel-supply-entry@4 {
-				reg = <4>;
-				qcom,supply-name = "oled_disp";
-				qcom,supply-min-voltage = <5000000>;
-				qcom,supply-max-voltage = <8100000>;
-				qcom,supply-enable-load = <100000>;
-				qcom,supply-disable-load = <100>;
-			};
-	};
-};
-
-&mot_tianma_601_1080p_cmd_v0 {
-	qcom,bklt-dcs-2bytes-enabled;
-	qcom,mdss-dsi-bl-min-level = <3>;
-	qcom,mdss-dsi-bl-max-level = <1023>;
-
-	qcom,panel-supply-entries {
-			qcom,panel-supply-entry@4 {
-				reg = <4>;
-				qcom,supply-name = "oled_disp";
-				qcom,supply-min-voltage = <5000000>;
-				qcom,supply-max-voltage = <8100000>;
-				qcom,supply-enable-load = <100000>;
-				qcom,supply-disable-load = <100>;
-			};
-	};
-};
-
 &pm660l_gpios {
 	haptic_pwr_default: haptic_pwr_default {
 		pins = "gpio5";
 		output-high;
 		bias-disable;
-	};
-};
-
-&pm660l_rgb_led {
-	/delete-node/ green;
-	/delete-node/ blue;
-	red {
-		label = "charging";
 	};
 };
