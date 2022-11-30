@@ -6606,11 +6606,10 @@ static void synaptics_rmi4_detection_work(struct work_struct *work)
 			container_of(exp_fn_ctrl, struct synaptics_rmi4_data, exp_fn_ctrl);
 	struct synaptics_rmi4_exp_fn *exp_fhandler, *next_list_entry;
 	struct device *dev = &rmi4_data->i2c_client->dev;
-	int state, error, probe_status;
+	int state, error;
 	unsigned int scheduled_delay = 0;
 	bool f34_inserted = false;
 	bool terminate = false;
-	bool panel_ready = true;
 	char *pname = NULL;
 
 #if defined(CONFIG_DRM)
