@@ -973,5 +973,7 @@ config MOTOROLA_DTB
 
 config MOTOROLA_BECKHAM_DTB
 	bool "Motorola Z3 Play (Beckham)"
+	select SND_SOC_CS47L90 if MFD_CS47L90
+	select SND_SOC_MADERA_SLIMBUS
 	help
 	  Say 'Y' here to enable compliation of the Motorola Z3 Play DTB.

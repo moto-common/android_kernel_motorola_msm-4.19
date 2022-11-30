@@ -1,21 +1,19 @@
-// SPDX-License-Identifier: GPL-2.0
 /*
  * SPI bus interface to Cirrus Logic Madera codecs
  *
- * Copyright (C) 2015-2018 Cirrus Logic
+ * Copyright 2015 Cirrus Logic
  *
  * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by the
- * Free Software Foundation; version 2.
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
  */
 
-#include <linux/device.h>
 #include <linux/err.h>
-#include <linux/module.h>
-#include <linux/of.h>
-#include <linux/of_device.h>
-#include <linux/regmap.h>
 #include <linux/spi/spi.h>
+#include <linux/module.h>
+#include <linux/regmap.h>
+#include <linux/slab.h>
+#include <linux/of.h>
 
 #include <linux/mfd/madera/core.h>
 
@@ -27,14 +25,11 @@ static int madera_spi_probe(struct spi_device *spi)
 	struct madera *madera;
 	const struct regmap_config *regmap_16bit_config = NULL;
 	const struct regmap_config *regmap_32bit_config = NULL;
-	const void *of_data;
 	unsigned long type;
-	const char *name;
 	int ret;
 
-	of_data = of_device_get_match_data(&spi->dev);
-	if (of_data)
-		type = (unsigned long)of_data;
+	if (spi->dev.of_node)
+		type = madera_of_get_type(&spi->dev);
 	else
 		type = id->driver_data;
 
@@ -65,12 +60,10 @@ static int madera_spi_probe(struct spi_device *spi)
 		return -EINVAL;
 	}
 
-	name = madera_name_from_type(type);
-
 	if (!regmap_16bit_config) {
-		/* it's polite to say which codec isn't built into the kernel */
 		dev_err(&spi->dev,
-			"Kernel does not include support for %s\n", name);
+			"Kernel does not include support for %s\n",
+			madera_name_from_type(type));
 		return -EINVAL;
 	}
 
@@ -95,7 +88,6 @@ static int madera_spi_probe(struct spi_device *spi)
 	}
 
 	madera->type = type;
-	madera->type_name = name;
 	madera->dev = &spi->dev;
 	madera->irq = spi->irq;
 
@@ -107,7 +99,6 @@ static int madera_spi_remove(struct spi_device *spi)
 	struct madera *madera = spi_get_drvdata(spi);
 
 	madera_dev_exit(madera);
-
 	return 0;
 }
 
@@ -117,13 +108,14 @@ static const struct spi_device_id madera_spi_ids[] = {
 	{ "cs47l90", CS47L90 },
 	{ "cs47l91", CS47L91 },
 	{ "wm1840", WM1840 },
-	{ }
+	{ },
 };
 MODULE_DEVICE_TABLE(spi, madera_spi_ids);
 
 static struct spi_driver madera_spi_driver = {
 	.driver = {
 		.name	= "madera",
+		.owner	= THIS_MODULE,
 		.pm	= &madera_pm_ops,
 		.of_match_table	= of_match_ptr(madera_of_match),
 	},
@@ -135,5 +127,5 @@ static struct spi_driver madera_spi_driver = {
 module_spi_driver(madera_spi_driver);
 
 MODULE_DESCRIPTION("Madera SPI bus interface");
-MODULE_AUTHOR("Richard Fitzgerald <rf@opensource.cirrus.com>");
+MODULE_AUTHOR("Richard Fitzgerald <rf@opensource.wolfsonmicro.com>");
 MODULE_LICENSE("GPL v2");

@@ -53,6 +53,7 @@ config SND_SOC_ALL_CODECS
 	select SND_SOC_CS35L33 if I2C
 	select SND_SOC_CS35L34 if I2C
 	select SND_SOC_CS35L35 if I2C
+	select SND_SOC_CS35L36 if I2C
 	select SND_SOC_CS42L42 if I2C
 	select SND_SOC_CS42L51_I2C if I2C
 	select SND_SOC_CS42L52 if I2C && INPUT
@@ -66,6 +67,7 @@ config SND_SOC_ALL_CODECS
 	select SND_SOC_CS43130 if I2C
 	select SND_SOC_CS4349 if I2C
 	select SND_SOC_CS47L24 if MFD_CS47L24
+	select SND_SOC_CS47L90 if MFD_CS47L90
 	select SND_SOC_CS53L30 if I2C
 	select SND_SOC_CX20442 if TTY
 	select SND_SOC_DA7210 if SND_SOC_I2C_AND_SPI
@@ -261,6 +263,17 @@ config SND_SOC_ARIZONA
 	default m if SND_SOC_WM8997=m
 	default m if SND_SOC_WM8998=m
 
+config SND_SOC_MADERA
+	tristate
+	default y if SND_SOC_CS47L35=y
+	default m if SND_SOC_CS47L35=y
+	default y if SND_SOC_CS47L90=y
+	default m if SND_SOC_CS47L90=y
+
+config SND_SOC_MADERA_SLIMBUS
+	tristate
+	depends on SLIMBUS
+
 config SND_SOC_WM_HUBS
 	tristate
 	default y if SND_SOC_WM8993=y || SND_SOC_WM8994=y
@@ -269,6 +282,7 @@ config SND_SOC_WM_HUBS
 config SND_SOC_WM_ADSP
 	tristate
 	select SND_SOC_COMPRESS
+	default y if SND_SOC_MADERA=y
 	default y if SND_SOC_CS47L24=y
 	default y if SND_SOC_WM5102=y
 	default y if SND_SOC_WM5110=y
@@ -461,6 +475,10 @@ config SND_SOC_CS35L35
 	tristate "Cirrus Logic CS35L35 CODEC"
 	depends on I2C
 
+config SND_SOC_CS35L36
+	tristate "Cirrus Logic CS35L36 CODEC"
+	depends on I2C
+
 config SND_SOC_CS42L42
 	tristate "Cirrus Logic CS42L42 CODEC"
 	depends on I2C
@@ -538,6 +556,9 @@ config SND_SOC_CS4349
 	depends on I2C
 
 config SND_SOC_CS47L24
+	tristate
+
+config SND_SOC_CS47L90
 	tristate
 
 # Cirrus Logic Quad-Channel ADC
