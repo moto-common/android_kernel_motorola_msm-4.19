@@ -131,6 +131,10 @@
 
 &soc {
 	/delete-node/ audio_ext_clk;
+	/delete-node/ sdw_clk_data_pinctrl;
+	/delete-node/ wsa_spkr_en1_pinctrl;
+	/delete-node/ wsa_spkr_en2_pinctrl;
+	/delete-node/ msm-sdw-codec@152c1000;
 	qcom,msm-dai-mi2s {
 		compatible = "qcom,msm-dai-mi2s";
 		dai_mi2s0: qcom,msm-dai-q6-mi2s-prim {
@@ -523,5 +527,6 @@
 };
 
 &q6core {
+	/delete-node/ sound;
 	/delete-node/ sound-tavil;
 };
