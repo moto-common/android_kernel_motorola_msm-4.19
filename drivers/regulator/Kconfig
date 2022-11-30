@@ -144,6 +144,14 @@ config REGULATOR_AB8500
 	  This driver supports the regulators found on the ST-Ericsson mixed
 	  signal AB8500 PMIC
 
+config REGULATOR_MADERA_MICSUPP
+	tristate "Cirrus Logic Madera codecs mic supply regulator"
+	depends on MFD_MADERA
+	depends on SND_SOC
+	help
+	  Support for the microphone supply regulator on Cirrus Logic
+	  Madera class codecs
+
 config REGULATOR_ARIZONA_LDO1
 	tristate "Wolfson Arizona class devices LDO1"
 	depends on MFD_ARIZONA
