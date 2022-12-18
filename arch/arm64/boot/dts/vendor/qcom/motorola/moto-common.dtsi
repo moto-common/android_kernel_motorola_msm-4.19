@@ -23,6 +23,7 @@
 			status = "ok";
 			reg = <0x0 0xaf000000 0x0 0xC0000>;
 			console-size = <RAMOOPS_CONSOLE_SIZE>;
+			ecc-size = <16>;
 		};
 	};
 
