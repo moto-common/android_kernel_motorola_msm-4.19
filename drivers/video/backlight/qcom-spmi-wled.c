@@ -178,8 +178,6 @@
 
 #define  WLED5_SINK_FLASH_SHDN_CLR_REG	0xb6
 
-#define SDM660l_DISABLE_OVP_CNT 10
-
 enum wled_version {
 	WLED_PMI8998 = 4,
 	WLED_PM660L,
@@ -255,8 +253,6 @@ struct wled {
 	enum wled_flash_mode flash_mode;
 	u8 num_strings;
 	u32 leds_per_string;
-	bool sdm660l_ovp_disable;
-	u32 ovp_cnt;
 };
 
 enum wled5_mod_sel {
@@ -1046,15 +1042,6 @@ static irqreturn_t wled_ovp_irq_handler(int irq, void *_wled)
 
 	if (fault_set)
 		handle_ovp_fault(wled);
-
-	if (wled->sdm660l_ovp_disable) {
-		wled->ovp_cnt++;
-		if (wled->ovp_cnt > SDM660l_DISABLE_OVP_CNT) {
-			pr_err("SDM660L WLED OVP disable\n");
-			disable_irq(wled->ovp_irq);
-			wled->ovp_irq_disabled = true;
-		}
-	}
 
 	return IRQ_HANDLED;
 }
