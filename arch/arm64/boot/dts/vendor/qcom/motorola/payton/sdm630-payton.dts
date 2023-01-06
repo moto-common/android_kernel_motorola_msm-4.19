@@ -3,6 +3,7 @@
 // Include required dtsi
 #include "../../sdm630.dtsi"
 #include "../moto-common.dtsi"
+#include "audio.dtsi"
 #include "dsi-panel-mot-tianma-520-1080p-vid.dtsi"
 #include "dsi-panel-mot-boe-520-1080p-vid.dtsi"
 
@@ -19,6 +20,7 @@
 		#include "fg-gen3-batterydata-hx40sunwoda-3000mah.dtsi"
 		#include "fg-gen3-batterydata-hx40scud-3000mah.dtsi"
 	};
+	/delete-node/ firmware;
 };
 
 // Vibrator
@@ -43,6 +45,51 @@
 
 	usb_nop_phy: usb_nop_phy {
 		compatible = "usb-nop-xceiv";
+	};
+};
+
+&i2c_6 { /* BLSP1 QUP6 (NFC) */
+        status = "okay";
+        nq@28 {
+                compatible = "qcom,nq-nci";
+                reg = <0x28>;
+                qcom,nq-irq = <&tlmm 28 0x00>;
+                qcom,nq-ven = <&tlmm 29 0x00>;
+                qcom,nq-firm = <&tlmm 30 0x00>;
+                qcom,nq-clkreq = <&pm660_gpios 4 0x00>;
+                qcom,nq-esepwr = <&tlmm 31 0x00>;
+                interrupt-parent = <&tlmm>;
+                qcom,clk-src = "BBCLK3";
+                interrupts = <28 0>;
+                interrupt-names = "nfc_irq";
+                pinctrl-names = "nfc_active", "nfc_suspend";
+                pinctrl-0 = <&nfc_int_active &nfc_enable_active>;
+                pinctrl-1 = <&nfc_int_suspend &nfc_enable_suspend>;
+                clocks = <&clock_rpmcc RPM_SMD_LN_BB_CLK3_PIN>;
+                clock-names = "ref_clk";
+        };
+};
+
+&i2c_3 {
+        status = "okay";
+        qcom,disable-dma;
+	synaptics_dsx_i2c@20 {
+		compatible = "synaptics,synaptics_dsx_i2c";
+		reg = <0x20>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <67 0>;
+		gpios = <&tlmm 67 0>; /* IRQ */
+		synaptics,gpio-config;
+		pinctrl-names = "default", "active";
+		pinctrl-0 = <&touch_int_suspend>;
+		pinctrl-1 = <&touch_int_active>;
+		config_modifier-names = "aod";
+		config_modifier-aod {
+			aod-suspended {
+				/* Power->sleep; */
+				patch-data = "S";
+			};
+		};
 	};
 };
 
@@ -91,7 +138,7 @@
 
 &pm660l_wled {
 	qcom,ovp = <18100>;
-	qcom,string-cfg = [00 01 02];
+	qcom,string-cfg = <14>;
 	qcom,en-cabc;
 	/delete-property/ qcom,auto-calibration;
 };

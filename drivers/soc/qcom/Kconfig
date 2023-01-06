@@ -982,5 +982,16 @@ config MOTOROLA_BECKHAM_DTB
 config MOTOROLA_PAYTON_DTB
 	bool "Motorola X4 (Payton)"
 	depends on MOTOROLA_DTB
+	select SND_SOC_CS47L35 if MFD_CS47L35
+	select SND_SOC_MADERA_SLIMBUS
 	help
 	  Say 'Y' here to enable compliation of the Motorola X4 DTB.
+
+config MOTOROLA_HEART_DTB
+	bool "Motorola X5 (Heart)"
+	depends on MOTOROLA_DTB
+	select SND_SOC_CS47L35 if MFD_CS47L35
+	select SND_SOC_MADERA_SLIMBUS
+	help
+	  Say 'Y' here to enable compliation of the Motorola X5 DTB.
+
