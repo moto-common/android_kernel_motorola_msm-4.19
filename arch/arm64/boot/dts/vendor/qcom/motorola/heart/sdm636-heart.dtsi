@@ -1,0 +1,101 @@
+// Include required dtsi
+//#include "../../sdm636.dtsi"
+//#include "../../msm-pm660a.dtsi"
+//#include "../moto-common.dtsi"
+#include "dsi-panel-mot-lg-550-1080p-vid.dtsi"
+
+/ {
+	// Battery
+	mot_batterydata: qcom,battery-data {
+		qcom,batt-id-range-pct = <15>;
+		df-serialnum = "SB18C26504";
+		#include "fg-gen3-batterydata-jx40atl-3010mah.dtsi"
+	};
+};
+
+&mdss_mdp {
+	qcom,mdss-pref-prim-intf = "dsi";
+};
+
+&mdss_dsi {
+	hw-config = "single_dsi";
+};
+
+&mdss_dsi1 {
+	status = "disabled";
+};
+
+// Display configuration
+&mdss_dsi0 {
+	qcom,dsi-pref-prim-pan = <&mot_lg_550_1080p_vid_v0>;
+	pinctrl-names = "mdss_default", "mdss_sleep";
+	pinctrl-0 = <&mdss_dsi_active &mdss_te_active>;
+	pinctrl-1 = <&mdss_dsi_suspend &mdss_te_suspend>;
+	qcom,platform-reset-gpio = <&tlmm 53 0>;
+	qcom,platform-te-gpio = <&tlmm 59 0>;
+};
+
+&pm660l_wled {
+	qcom,ovp-mv = <18100>;
+        qcom,string-cfg = <14>;
+	qcom,en-cabc;
+        /delete-property/ qcom,auto-calibration;
+};
+
+&soc {
+	// Protected GPIOs
+	qcom,tz_gpio {
+		compatible = "qcom,tz_gpio";
+		tlmm-tz = <0>,
+			<1>,
+			<2>,
+			<3>;
+	};
+
+	ssphy: ssphy@c010000 {
+		status = "disabled";
+	};
+
+	usb_nop_phy: usb_nop_phy {
+		compatible = "usb-nop-xceiv";
+	};
+
+	// SDM636 does not have a SEE, sensors are placed in adsp instead
+	qcom,msm_fastrpc {
+		/delete-property/ qcom,fastrpc-adsp-sensors-pdr;
+	};
+};
+
+// Charger/USB
+&pm660_charger {
+	qcom,dc-icl-ua = <1100000>;
+	qcom,mmi-temp-zones = <0 4200 586 0>,
+				<10 4200 879 586>,
+				<15 0 1465 1465>,
+				<45 4200 3000 2000>,
+				<60 4100 1465  0>;
+};
+
+&pm660_fg {
+	qcom,fg-delta-soc-thr = <1>;
+	qcom,fg-sys-term-current = <(-200)>;
+	qcom,battery-thermal-coefficients = [9d 50 ff];
+};
+
+&usb3 {
+	dwc3@a800000 {
+		usb-phy = <&qusb_phy0>, <&usb_nop_phy>;
+		maximum-speed = "high-speed";
+	};
+};
+
+&pm660l_gpios {
+	gpio@c600 {
+		qcom,vin-sel = <1>;
+	};
+};
+
+&pm660_haptics { /* Vibrator */
+	qcom,actuator-type = "lra";
+	qcom,vmax-mv = <3000>;
+};
