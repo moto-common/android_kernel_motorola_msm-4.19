@@ -187,6 +187,7 @@
 		focaltech,panel-supplier = "djnboe";
 		focaltech,report_gesture_key;
 		focaltech,dlfw_in_resume;
+		panel = <&dsi_djnboe_ft8009_video>;
 		status = "/chosen", "mmi,panel_name", "djnboe_ft8009_video_display";
 	};
 };

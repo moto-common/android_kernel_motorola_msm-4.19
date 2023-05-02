@@ -29,5 +29,8 @@ endif
 ifneq ($(filter m y,$(CONFIG_INPUT_FOCALTECH_0FLASH_MMI_PEN_NOTIFIER)),)
 	ccflags-y += -DFOCALTECH_PEN_NOTIFIER
 endif
+ifneq ($(filter m y,$(CONFIG_INPUT_FOCALTECH_0FLASH_MMI_DRM_PANEL)),)
+	ccflags-y += -DFOCALTECH_DRM_PANEL
+endif
 
 obj-$(CONFIG_TOUCHSCREEN_FTS_0FLASH_MMI) += focaltech_0flash_mmi.o
