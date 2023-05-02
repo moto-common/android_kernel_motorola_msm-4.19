@@ -451,7 +451,7 @@ static unsigned int fg_read_ocv(struct sm_fg_chip *sm)
 	return ocv; //mV
 }
 
-bool is_factory_mode(void)
+bool sm_is_factory_mode(void)
 {
 	struct device_node *np = of_find_node_by_path("/chosen");
 	bool factory_mode = false;
@@ -2866,7 +2866,7 @@ static int sm_fg_probe(struct i2c_client *client,
 
 	fg_dump_debug(sm);
 
-	if(is_factory_mode())
+	if(sm_is_factory_mode())
 		sm->factory_mode = true;
 
 	//schedule_delayed_work(&sm->monitor_work, 10 * HZ);

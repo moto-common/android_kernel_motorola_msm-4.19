@@ -357,7 +357,7 @@ static int cw_get_capacity(struct cw_battery *cw_bat)
 	return 0;
 }
 
-bool is_factory_mode(void)
+bool cw_is_factory_mode(void)
 {
 	struct device_node *np = of_find_node_by_path("/chosen");
 	bool factory_mode = false;
@@ -1044,7 +1044,7 @@ static int cw2217_probe(struct i2c_client *client, const struct i2c_device_id *i
 	INIT_WORK(&cw_bat->hw_init_work, cw_hw_init_work);
 	schedule_work(&cw_bat->hw_init_work);
 
-	if(is_factory_mode())
+	if(cw_is_factory_mode())
 		cw_bat->factory_mode = true;
 
 	cw_printk("cw2217 driver probe success!\n");
