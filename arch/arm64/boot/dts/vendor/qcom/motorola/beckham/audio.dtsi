@@ -489,29 +489,6 @@
 							<&cs47l90 4 0>;
 			};
 		};
-
-		adsps {
-			#address-cells = <1>;
-			#size-cells = <0>;
-			adsp@17fe00 {
-				reg = <0x17fe00>;
-				firmware {
-					frontend {
-						wlf,wmfw-file = "moon-dsp2-aov-frontend.wmfw";
-						wlf,bin-file = "moon-dsp2-aov-vrgain.bin";
-					};
-				};
-			};
-			adsp@1ffe00 {
-				reg = <0x1ffe00>;
-				firmware {
-					aov {
-						wlf,wmfw-file = "moon-dsp3-aov-control.wmfw";
-						wlf,bin-file = "moon-dsp3-aov-model.bin";
-					};
-				};
-			};
-		};
 	};
 };
 

@@ -37,7 +37,7 @@
 
 &pm660l_wled {
 	qcom,ovp-mv = <18100>;
-        qcom,string-cfg = <14>;
+        qcom,string-cfg = [00 01 02];
 	qcom,en-cabc;
         /delete-property/ qcom,auto-calibration;
 };

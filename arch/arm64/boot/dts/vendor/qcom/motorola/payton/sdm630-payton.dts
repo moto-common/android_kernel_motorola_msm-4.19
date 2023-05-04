@@ -3,6 +3,7 @@
 // Include required dtsi
 #include "../../sdm630.dtsi"
 #include "../moto-common.dtsi"
+#include "audio.dtsi"
 #include "dsi-panel-mot-tianma-520-1080p-vid.dtsi"
 #include "dsi-panel-mot-boe-520-1080p-vid.dtsi"
 
@@ -19,6 +20,7 @@
 		#include "fg-gen3-batterydata-hx40sunwoda-3000mah.dtsi"
 		#include "fg-gen3-batterydata-hx40scud-3000mah.dtsi"
 	};
+	/delete-node/ firmware;
 };
 
 // Vibrator
