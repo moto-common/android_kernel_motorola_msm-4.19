@@ -20,6 +20,7 @@
 #include <linux/fcntl.h>
 #include <linux/uio.h>
 #include <linux/writeback.h>
+#include <linux/blkdev.h>
 #include "internal.h"
 
 /**
@@ -232,7 +233,7 @@ static int psz_zone_write(struct pstore_zone *zone,
 				zone->off + sizeof(*zone->buffer) + off);
 		if (wcnt != wlen)
 			goto dirty;
-		fallthrough;
+		do {} while (0);
 	case FLUSH_META:
 		wlen = sizeof(struct psz_buffer);
 		wcnt = writeop((const char *)zone->buffer, wlen, zone->off);
@@ -1034,7 +1035,7 @@ next_zone:
 		readop = psz_ftrace_read;
 		break;
 	case PSTORE_TYPE_CONSOLE:
-		fallthrough;
+		do {} while (0);
 	case PSTORE_TYPE_PMSG:
 		readop = psz_record_read;
 		break;
