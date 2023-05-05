@@ -16,7 +16,7 @@
 #include <linux/pstore_blk.h>
 #include <linux/fs.h>
 #include <linux/file.h>
-#include <linux/init_syscalls.h>
+#include <linux/syscalls.h>
 #include <linux/mount.h>
 
 static long kmsg_size = CONFIG_PSTORE_BLK_KMSG_SIZE;
@@ -318,8 +318,8 @@ static __init const char *early_boot_devpath(const char *initial_devname)
 		return initial_devname;
 	}
 
-	init_unlink(devname);
-	init_mknod(devname, S_IFBLK | 0600, new_encode_dev(dev));
+	ksys_unlink(devname);
+	ksys_mknod(devname, S_IFBLK | 0600, new_encode_dev(dev));
 
 	return devname;
 }
