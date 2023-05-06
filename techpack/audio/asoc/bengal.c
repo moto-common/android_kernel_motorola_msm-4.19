@@ -5434,6 +5434,7 @@ static struct snd_soc_dai_link msm_awinic_be_dai_links[] = {
 };
 
 static struct snd_soc_dai_link_component awinic_codecs[] = {
+#ifdef CONFIG_AW882XX_NEW_DRIVER
         {
                 .of_node = NULL,
                 .dai_name = "aw882xx-aif-1-34",
@@ -5457,7 +5458,14 @@ static struct snd_soc_dai_link_component awinic_codecs[] = {
                 .dai_name = "aw882xx-aif-1-37",
                 .name = "aw882xxacf_smartpa.1-0037",
         },
-#endif
+#endif // CONFIG_HAWAO_AW882XX_SMARTPA
+#else
+        {
+                .of_node = NULL,
+                .dai_name = "aw882xx-aif-1-34",
+                .name = "aw882xx_smartpa.1-0034",
+        },
+#endif //CONFIG_AW882XX_NEW_DRIVER
 };
 
 static struct snd_soc_dai_link msm_stereo_awinic_be_dai_links[] = {
