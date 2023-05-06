@@ -91,4 +91,4 @@ obj-$(CONFIG_INPUT_QPNP_POWER_ON_MMI)	+= qpnp_power_on_mmi/
 obj-$(CONFIG_INPUT_MISC_CHIPONE_FPS)	+= chipone_fps_mmi/
 obj-$(CONFIG_INPUT_FOCAL_FPS_MMI)	+= focal_fps_mmi/
 obj-$(CONFIG_INPUT_EGIS_FPS_MMI)	+= rbs_fps_mmi/
-
+obj-$(CONFIG_INPUT_GOODIX_FOD_MMI)	+= goodix_fod_mmi/
