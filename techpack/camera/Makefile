@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-only
+ifneq ($(CONFIG_GUAM_DTB),y)
 
 # auto-detect subdirs
 ifeq ($(CONFIG_ARCH_KONA), y)
@@ -50,4 +51,6 @@ LINUXINCLUDE    += \
 obj-y += drivers/
 else
 $(info Target not found)
+endif
+
 endif
