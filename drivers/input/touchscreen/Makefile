@@ -123,3 +123,5 @@ obj-$(CONFIG_TOUCHSCREEN_CHIPONE_TDDI)	+= chipone_tddi_mmi/
 obj-$(CONFIG_TOUCHSCREEN_GOODIX_BRL)	+= goodix_berlin_mmi/
 obj-$(CONFIG_TOUCHSCREEN_MMI)	+= touchscreen_mmi/
 obj-$(CONFIG_TOUCHSCREEN_SYNA_TCM2)	+= synaptics_tcm2_mmi/
+obj-$(CONFIG_INPUT_TOUCHSCREEN_FOCALTECH_V3) += focaltech_touch_v3/
+
