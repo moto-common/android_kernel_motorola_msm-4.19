@@ -325,6 +325,7 @@ sdm660-internal-codec-cdp.dtb \
 
 ifeq ($(CONFIG_MOTOROLA_DTB),y)
 dtb-$(CONFIG_MOTOROLA_BECKHAM_DTB) += motorola/beckham/sdm636-beckham.dtb
+dtb-$(CONFIG_MOTOROLA_EVERT_DTB) += motorola/evert/sdm630-evert.dtb
 dtb-$(CONFIG_MOTOROLA_PAYTON_DTB) += motorola/payton/sdm630-payton.dtb
 dtb-$(CONFIG_MOTOROLA_HEART_DTB) += motorola/heart/sdm636-heart.dtb
 endif

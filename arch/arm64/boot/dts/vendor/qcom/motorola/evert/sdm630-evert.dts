@@ -1,0 +1,376 @@
+/dts-v1/;
+
+// Include required dtsi
+#include "../../sdm630.dtsi"
+#include "../../msm-pm660a.dtsi"
+#include "../moto-common.dtsi"
+#include "../external-codec.dtsi"
+#include "pinctrl.dtsi"
+#include "dsi-panel-mot-tianma-593-1080p-vid.dtsi"
+#include "dsi-panel-mot-auo-593-1080p-vid.dtsi"
+#include "dsi-panel-mot-djn-593-1080p-vid.dtsi"
+#include "sdm630-camera-sensor-mot-evert.dtsi"
+/ {
+        model = "Evert";
+        compatible = "qcom,sdm630-evert", "qcom,sdm630-moto",
+                        "qcom,sdm630";
+	/*spi4 for dtv*/
+	aliases {
+		spi4 = &spi_4;
+	};
+
+	firmware: firmware {
+		android {
+			compatible = "android,firmware";
+			fstab {
+				compatible = "android,fstab";
+				vendor {
+					compatible = "android,vendor";
+					dev = "/dev/block/platform/soc/c0c4000.sdhci/by-name/vendor";
+					type = "ext4";
+					mnt_flags = "ro,barrier=1,discard";
+					fsmgr_flags = "wait,slotselect,verify";
+					status = "ok";
+				};
+			};
+		};
+	};
+};
+
+
+
+&i2c_2 { /* cypress capsensor */
+	status = "okay";
+	cypress_capsensor@1D {
+		compatible = "cypress,sf3155";
+		label = "MotorolaCapSense";
+		reg = <0x1D>;
+		vdd-supply = <&pm660_l14>;
+		vddio-supply = <&pm660_l14>;
+		avdd-supply = <&pm660_l14>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <75 0x2008>;
+		silicon_id = <0x0BB11477>;
+		block_size = <64>;
+		num_of_blocks = <256>;
+		secure_bytes = <32>;
+		pinctrl-names = "default";
+		gpios = <&tlmm 80 0>, /* RESET */
+		      <&tlmm 60 0>, /* programming SCLK */
+		      <&tlmm 65 0>, /* programming SDAT */
+		      <&tlmm 75 0x2008>;
+		use-raw-gpio-rw = <1>;
+		gpio_base_addr = <0x03000004>;
+		gpio_base_size = <0x00a00000>;
+		gpio_clk_group = <0x00900000>;
+		gpio_dat_group = <0x00100000>;
+		cyttsp,sar-status-reg = <0x50>;
+		cyttsp,standby-reg = <0x51>;
+		cyttsp,bootloader-addr = <0x02>;
+		cyttsp,key-num = <4>;
+		cyttsp,key-codes = <4>;
+		threshold_reg_array_len = <16>;
+		na_threshold_array_val = <0x3A 0x50 0x3B 0x00 0x3C 0x50 0x3D 0x00 0x3E 0x32
+					0x3F 0x00 0x40 0x32 0x41 0x00 0x2A 0x00 0x2B 0x10
+					0x2C 0x2C 0x2D 0x01 0x2E 0x00 0x2F 0x04 0x30 0x00 0x31 0x05>;
+		default_threshold_array_val = <0x3A 0x50 0x3B 0x00 0x3C 0x50 0x3D 0x00 0x3E 0x32
+					0x3F 0x00 0x40 0x32 0x41 0x00 0x2A 0x90 0x2B 0x01
+					0x2C 0x2C 0x2D 0x01 0x2E 0x2C 0x2F 0x01 0x30 0x2C 0x31 0x01>;
+	};
+};
+
+&i2c_6 { /* BLSP1 QUP6 (NFC) */
+	status = "okay";
+	nq@28 {
+		compatible = "qcom,nq-nci";
+		status = "/chosen", "mmi,nfc", "true";
+		reg = <0x28>;
+		qcom,nq-irq = <&tlmm 28 0x00>;
+		qcom,nq-ven = <&tlmm 29 0x00>;
+		qcom,nq-firm = <&tlmm 30 0x00>;
+		qcom,nq-esepwr = <&tlmm 31 0x00>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <28 0>;
+		interrupt-names = "nfc_irq";
+		pinctrl-names = "nfc_active", "nfc_suspend";
+		pinctrl-0 = <&nfc_int_active &nfc_enable_active>;
+		pinctrl-1 = <&nfc_int_suspend &nfc_enable_suspend>;
+	};
+};
+
+&soc{
+	qcom,msm-thermal {
+		qcom,config-info = "evert";
+	};
+};
+
+&mdss_mdp {
+	qcom,mdss-pref-prim-intf = "dsi";
+};
+
+&mdss_dsi {
+	hw-config = "single_dsi";
+};
+
+&mdss_dsi0 {
+	qcom,dsi-pref-prim-pan = <&mot_tianma_593_1080p_vid_v0>;
+	pinctrl-names = "mdss_default", "mdss_sleep";
+	pinctrl-0 = <&mdss_dsi_active &mdss_te_active>;
+	pinctrl-1 = <&mdss_dsi_suspend &mdss_te_suspend>;
+	qcom,platform-reset-gpio = <&tlmm 53 0>;
+	qcom,platform-te-gpio = <&tlmm 59 0>;
+};
+
+&pm660l_wled {
+	qcom,led-strings-list = [00 01];
+	qcom,en-cabc;
+};
+
+&pm660l_l3 {
+	qcom,init-ldo-mode = <1>;
+};
+
+&soc {
+	fpc_fpc1020{
+		pinctrl-0 = <&fps_ldo_1P8_en_default>;
+	};
+
+	i2c_2: i2c@c176000 { /* BLSP1 QUP2 */
+		qcom,clk-freq-out = <100000>;
+	};
+};
+
+&i2c_2 { /* BLSP1 QUP2 */
+	status = "okay";
+	tps61280@75 {
+		compatible = "ti,tps61280";
+		reg = <0x75>;
+		ti,config = <0x0D>;
+		ti,vout-floor = <0x0D>;
+		ti,vout-roof = <0x19>;
+		ti,ilim = <0x0F>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&tps61280_en_default>;
+		status = "disabled";
+	};
+};
+
+&i2c_3 { /* BLSP1 QUP3 */
+	status = "okay";
+	qcom,disable-dma;
+	focaltech_ts@38 {
+		compatible = "focaltech,mmi";
+		reg = <0x38>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <67 0x2002>;
+		vdd-supply = <&pm660l_l3>;
+		pinctrl-names = "default", "pmx_ts_active", "pmx_ts_suspend";
+		pinctrl-0 = <&ts_reset_default>;
+		pinctrl-1 = <&ts_active>;
+		pinctrl-2 = <&ts_int_suspend &ts_reset_suspend>;
+		focaltech,name = "ft5x46";
+		focaltech,family-id = <0x54>;
+		focaltech,reset-gpio = <&tlmm 66 0x00>;
+		focaltech,irq-gpio = <&tlmm 67 0x2008>;
+		focaltech,display-coords = <0 0 1079 2159>;
+		focaltech,panel-coords = <0 0 1079 2159>;
+		focaltech,i2c-pull-up;
+		focaltech,group-id = <1>;
+		focaltech,hard-reset-delay-ms = <20>;
+		focaltech,soft-reset-delay-ms = <200>;
+		focaltech,num-max-touches = <10>;
+		focaltech,fw-delay-aa-ms = <2>;
+		focaltech,fw-delay-55-ms = <2>;
+		focaltech,fw-upgrade-id1 = <0x54>;
+		focaltech,fw-upgrade-id2 = <0x22>;
+		focaltech,fw-delay-readid-ms = <20>;
+		focaltech,fw-delay-era-flsh-ms = <2000>;
+		focaltech,resume-in-workqueue;
+		focaltech,ignore-id-check;
+		config_modifier-names = "fps";
+		config_modifier-fps {
+			enable-notification;
+			fps-active {
+				touch-clip-area = <260 2110 830 2159 1>;
+			};
+		};
+	};
+
+	goodix_ts@5d {
+		compatible = "goodix,gt9xx-mmi";
+		reg = <0x5d>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <67 0x00>;
+		vdd_ana-supply = <&pm660l_l3>;
+		goodix,rst-gpio = <&tlmm 66 0x00>;
+		goodix,irq-gpio = <&tlmm 67 0x00>;
+		goodix,name = "gt9xx";
+		goodix,ics-slot-report;
+		goodix,driver-send-cfg;
+		goodix,create-wr-node;
+		goodix,wakeup-with-reset;
+		goodix,coordinate-scale;
+		goodix,resume-in-workqueue;
+		goodix,display-coords = <0 0 1079 2159>;
+		goodix,panel-coords = <0 0 1079 2159>;
+		goodix,cfg-group0 = [
+			4C 37 04 6F 08 0A FD 38 11 8F 37
+			0F 5F 3C 03 05 00 00 60 62 12 32
+			05 16 18 1C 14 87 A7 EE 45 47 0F
+			0A 00 00 00 DA 33 91 00 00 00 00
+			00 02 C4 14 32 00 1A 41 58 8A E0
+			65 07 1E 00 04 8E 43 00 8B 47 00
+			87 4B 00 84 50 00 82 55 00 82 00
+			00 00 00 00 00 00 00 00 00 00 00
+			00 00 00 00 00 00 00 02 00 00 0F
+			32 00 03 00 00 32 06 55 00 00 00
+			00 41 00 01 02 03 14 1B 0C 0B 0A
+			15 1A 19 18 17 16 13 12 11 10 09
+			08 07 06 05 04 0F 0E 0D FF FF 00
+			02 04 05 06 08 0A 1E 1F 20 22 24
+			29 2A FF FF FF 8C 31 3C 3C 00 8C
+			70 12 00 78 8C A0 19 1E 3C 0F 00
+			06 66 66 0F 10 86 85 56 00 00 00
+			00 00 00 00 00 00 00 00 00 32 28
+			00 00 0F 14 78 1F 69 00 78 78 95
+			32 03 C5 00 00 00 00 96 00 00 14
+			D7 A2 3C 78 00 01 E8 01];
+		goodix,cfg-group1 = [
+			53 37 04 6F 08 0A FD 38 11 CF 2F
+			0F 5A 3C 03 05 00 00 60 62 11 32
+			05 17 18 1C 14 87 A7 EE 2D 2F 0F
+			0A 00 00 00 FB 34 91 00 00 00 00
+			00 02 C4 0C 0A 00 1A 24 5F 8A F0
+			C7 07 0F 00 04 81 27 00 80 2E 00
+			7F 3A 00 82 4A 00 85 56 00 85 00
+			00 00 00 00 00 00 00 00 00 00 00
+			00 00 00 00 00 00 00 02 00 00 0F
+			32 00 03 00 00 32 06 55 00 00 00
+			00 41 00 01 02 03 14 1B 0C 0B 0A
+			15 1A 19 18 17 16 13 12 11 10 09
+			08 07 06 05 04 0F 0E 0D FF FF 00
+			02 04 05 06 08 0A 1E 1F 20 22 24
+			29 2A FF FF FF 8C 31 3C 3C 00 8C
+			70 12 00 C8 A0 A0 19 1E 32 3F 00
+			06 66 66 0F 10 86 85 56 00 04 09
+			00 00 00 00 00 00 00 00 00 32 46
+			00 00 0F 14 78 1F 69 00 78 78 95
+			32 02 CA 00 00 00 00 96 00 0A 50
+			D7 A2 32 50 00 01 39 01];
+		config_modifier-names = "fps";
+		config_modifier-fps {
+			enable-notification;
+			fps-active {
+				touch-clip-area = <260 2110 830 2159 1>;
+			};
+		};
+	};
+};
+
+&pm660_haptics {
+	qcom,wave-shape = "sine";
+	qcom,vmax-mv = <2545>;
+	qcom,ilim-ma = <100>;
+	qcom,wave-play-rate-us = <4255>;
+	qcom,brake-pattern = [03 03 00 00];
+};
+
+&soc{
+	gpio_keys {
+		/delete-property/ pinctrl-names;
+		/delete-property/ pinctrl-0;
+		/delete-property/ pinctrl-1;
+	};
+
+	spi_4: spi@c178000 {/* BLSP1 QUP4 */
+		compatible = "qcom,spi-qup-v2";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg-names = "spi_physical", "spi_bam_physical";
+		reg = <0xC178000 0x600>,
+		      <0xC144000 0x1f000>;
+		interrupt-names = "spi_irq", "spi_bam_irq";
+		interrupts = <0 98 0>, <0 238 0>;
+		spi-max-frequency = <50000000>;
+		qcom,use-bam;
+		qcom,ver-reg-exists;
+		qcom,bam-consumer-pipe-index = <10>;
+		qcom,bam-producer-pipe-index = <11>;
+		qcom,master-id = <86>;
+		qcom,use-pinctrl;
+		pinctrl-names = "spi_default", "spi_sleep";
+		pinctrl-0 = <&spi_4_active>;
+		pinctrl-1 = <&spi_4_sleep>;
+		clock-names = "iface_clk", "core_clk";
+		clocks = <&clock_gcc GCC_BLSP1_AHB_CLK>,
+			 <&clock_gcc GCC_BLSP1_QUP4_SPI_APPS_CLK>;
+		status = "/chosen", "mmi,dtv", "true";
+
+		fci_dtv: fc8350@0 {
+			status = "/chosen", "mmi,dtv", "true";
+			compatible = "fci,isdbt";
+			reg = <0>;
+			spi-max-frequency = <50000000>;
+			irq-gpio = <&tlmm 9 0>;
+			enable-gpio = <&tlmm 113 0>;
+			reset-gpio = <&tlmm 8 0>;
+			interrupt-parent = <&tlmm>;
+			interrupts = <9 0>;
+			interrupt-names = "dtv_irq";
+			pinctrl-names = "default";
+			pinctrl-0 = <&dtv_output_default &dtv_input_default>;
+			bbm-xtal-freq = <26000>;
+			dbt-charger-mitigate-enable;
+		};
+	};
+};
+
+&pm660_fg {
+	qcom,battery-thermal-coefficients = [92 50 ff];
+	qcom,fg-esr-tight-lt-filter-micro-pct = <20000>;
+	qcom,fg-esr-broad-lt-filter-micro-pct = <30000>;
+};
+
+&pm660_charger {
+	qcom,iterm-ma = <155>;
+	qcom,thermal-mitigation = <3000>,
+				   <2500>,
+				   <1500>,
+				   <900>,
+				   <600>,
+				   <300>;
+	qcom,mmi-temp-zones = <0 4200 620 0>,
+				<10 4200 1550 620>,
+				<15 0 1550 1550>,
+				<45 4200 3000 2000>,
+				<60 4200 1550 0>;
+	qcom,upper-limit-capacity = <75>;
+};
+
+/{
+	mot_batterydata: qcom,battery-data {
+		df-serialnum = "SB18C20873";
+
+		#include "batterydata-jt40-atl-pm660.dtsi"
+		#include "batterydata-jt40-scud-pm660.dtsi"
+	};
+};
+
+&spi_7 {
+	cs47l35: cs47l35@0 {
+		cirrus,inmode = <
+			0 0 0 1
+			0 0 0 0
+		>;
+
+		cirrus,accdet {
+			acc@1 {
+				/delete-property/ cirrus,jd-check-jd2;
+				/delete-property/ cirrus,micd-clamp-mode;
+				cirrus,init-mic-delay-ms = <200>;
+				cirrus,micd-manual-debounce = <3>;
+				cirrus,jd-alt-jd2;
+			};
+		};
+	};
+};

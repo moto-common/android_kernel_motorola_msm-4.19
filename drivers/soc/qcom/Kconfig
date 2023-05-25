@@ -979,6 +979,15 @@ config MOTOROLA_BECKHAM_DTB
 	help
 	  Say 'Y' here to enable compliation of the Motorola Z3 Play DTB.
 
+
+config MOTOROLA_EVERT_DTB
+	bool "Motorola G6 Plus (EVERT)"
+	depends on MOTOROLA_DTB
+	select SND_SOC_CS47L90 if MFD_CS47L90
+	select SND_SOC_MADERA_SLIMBUS
+	help
+	  Say 'Y' here to enable compliation of the Motorola G6 Plus DTB.
+
 config MOTOROLA_PAYTON_DTB
 	bool "Motorola X4 (Payton)"
 	depends on MOTOROLA_DTB
