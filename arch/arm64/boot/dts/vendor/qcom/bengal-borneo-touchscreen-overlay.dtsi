@@ -157,6 +157,7 @@
 		novatek,def-build-id = <0x0401>;
 		novatek,def-config-id = <0x601e>;
 		novatek,report_gesture_key;
+		novatek,panel-supplier = "djn";
 		novatek,def-max-resolution = <720 1600>;
 		interrupt-parent = <&tlmm>;
 		interrupts = <67 0x02>;
