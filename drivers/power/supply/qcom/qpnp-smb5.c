@@ -2198,8 +2198,8 @@ static int smb5_batt_prop_is_writeable(struct power_supply *psy,
 }
 
 static const struct power_supply_desc batt_psy_desc = {
-	.name = "qcom_battery",
-	.type = POWER_SUPPLY_TYPE_MAIN,
+	.name = "battery",
+	.type = POWER_SUPPLY_TYPE_BATTERY,
 	.properties = smb5_batt_props,
 	.num_properties = ARRAY_SIZE(smb5_batt_props),
 	.get_property = smb5_batt_get_prop,
