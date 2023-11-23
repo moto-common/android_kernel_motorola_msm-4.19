@@ -46,7 +46,7 @@ config NOVA_ESD_ENABLE
 
           If unsure, say N.
 
-config NOVA_DRM_ENABLE
+config INPUT_NOVA_DRM_PANEL
         bool "Moto Novatek NT36xxx DRM Panel Detection"
         depends on TOUCHSCREEN_NT36xxx_HOSTDL_SPI_MMI
         default n
